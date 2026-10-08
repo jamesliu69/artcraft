@@ -2,6 +2,24 @@
 
 This file provides guidance for coding agents when working with the Artcraft monorepo.
 
+## Personal Branch Rules (使用者個人分支規則)
+
+- This checkout is for the user's personal changes. Work on `personal/zh-tw`
+  for the Traditional Chinese language-switching feature; keep `main` unchanged.
+- 本分支的主要功能是讓 Artcraft 能切換成繁體中文（`zh-TW`），並保留英文選項。
+- Do not push to the original author's repository (`storytold/artcraft`), modify
+  its branches, or create pull requests, issues, comments, releases, or other
+  remote writes there. Do not submit this personal work to the original author.
+- Never run `gh pr create` or any equivalent PR-creation action against the
+  original author's repository, even as part of a default completion workflow.
+- Keep `origin` available for read-only fetches. Its local push URL is
+  intentionally set to `DISABLED`; do not remove or bypass this protection.
+- Keep changes and commits local unless the user explicitly requests a push to
+  a repository they own. Before any such push, verify that the destination is
+  the user's repository and not the original author's repository.
+- Preserve existing untracked and ignored files, including the local
+  `artcraft/` directory. Do not stage unrelated files.
+
 ## Project Overview
 
 Artcraft is a public-facing Tauri desktop app for generating AI images and video.
