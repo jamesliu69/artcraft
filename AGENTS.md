@@ -12,8 +12,11 @@ This file provides guidance for coding agents when working with the Artcraft mon
   remote writes there. Do not submit this personal work to the original author.
 - Never run `gh pr create` or any equivalent PR-creation action against the
   original author's repository, even as part of a default completion workflow.
-- Keep `origin` available for read-only fetches. Its local push URL is
-  intentionally set to `DISABLED`; do not remove or bypass this protection.
+- `origin` is the user's fork (`jamesliu69/artcraft`), the destination for
+  explicitly requested personal-branch pushes.
+- `upstream` is the original author's repository (`storytold/artcraft`),
+  available for read-only fetches. Its local push URL is intentionally set to
+  `DISABLED`; do not remove or bypass this protection.
 - Keep changes and commits local unless the user explicitly requests a push to
   a repository they own. Before any such push, verify that the destination is
   the user's repository and not the original author's repository.
