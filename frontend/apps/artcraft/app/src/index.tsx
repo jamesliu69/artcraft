@@ -13,6 +13,7 @@ import { SyncStorytellerApiConfig } from "./api/SyncStorytellerApiConfig";
 import { posthog } from "posthog-js";
 import { SoundManager } from "@storyteller/soundboard";
 import { useModelsStore } from "@storyteller/tauri-api";
+import { initializeLocale } from "@storyteller/common";
 
 // TODO(bt,2025-04-19): Make these configurable
 const ENV = {
@@ -97,6 +98,7 @@ const GlobalSettingsManager = ({ env }: { env: Record<string, string> }) => {
 };
 
 // TODO: Replace environment variables from `root.tsx`
+initializeLocale();
 createRoot(document.getElementById("root")!).render(
   <>
     <StrictMode>

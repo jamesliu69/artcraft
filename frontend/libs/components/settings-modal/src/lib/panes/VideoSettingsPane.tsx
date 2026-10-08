@@ -1,7 +1,9 @@
 import { Select, SelectValue } from "@storyteller/ui-select";
 import { useState } from "react";
+import { useTranslation } from "@storyteller/common";
 
 export const VideoSettingsPane = () => {
+  const { t } = useTranslation();
   const [defaultVideoModel, setDefaultVideoModel] = useState("veo");
   const [humanVideoProvider, setHumanVideoProvider] = useState("artcraft");
 
@@ -9,7 +11,7 @@ export const VideoSettingsPane = () => {
     <div className="space-y-4">
       <div>
         <label htmlFor="default-video-model" className="mb-2 block">
-          Default Video Model
+          {t("Default Video Model")}
         </label>
         <Select
           id="default-video-model"
@@ -23,7 +25,7 @@ export const VideoSettingsPane = () => {
       </div>
       <div>
         <label htmlFor="human-video-provider" className="mb-2 block">
-          Human Video Provider
+          {t("Human Video Provider")}
         </label>
         <Select
           id="human-video-provider"

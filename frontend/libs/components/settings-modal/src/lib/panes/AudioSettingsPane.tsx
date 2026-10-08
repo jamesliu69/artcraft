@@ -10,10 +10,12 @@ import { PreferenceName, UpdateAppPreferences } from "@storyteller/tauri-api";
 import { Select, SelectValue } from "@storyteller/ui-select";
 import { Switch } from "@storyteller/ui-switch";
 import { Label } from "@storyteller/ui-label";
+import { useTranslation } from "@storyteller/common";
 
 interface AudioSettingsPaneProps {}
 
 export const AudioSettingsPane = (args: AudioSettingsPaneProps) => {
+  const { t } = useTranslation();
   const [preferences, setPreferences] = useState<
     AppPreferencesPayload | undefined
   >(undefined);
@@ -109,16 +111,16 @@ export const AudioSettingsPane = (args: AudioSettingsPaneProps) => {
       <div className="space-y-4 pt-3 text-base-fg">
         <div className="flex flex-col gap-2">
           <Label htmlFor="play-sounds" className="mb-0">
-            Play Notification Sounds for Events?
+            {t("Play Notification Sounds for Events?")}
           </Label>
           <Switch enabled={playSounds} setEnabled={setPlaySounds} />
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="success-sound">Delete File Sound</Label>
+          <Label htmlFor="delete-file-sound">{t("Delete File Sound")}</Label>
           <div className="flex items-center gap-2">
             <Select
-              id="success-sound"
+              id="delete-file-sound"
               value={deleteFileSound}
               onChange={(val: SelectValue) => setDeleteFileSound(val as string)}
               options={SoundManager.OPTIONS}
@@ -128,16 +130,20 @@ export const AudioSettingsPane = (args: AudioSettingsPaneProps) => {
               variant="primary"
               className="w-[40px] h-[40px]"
               icon={PlayIcon}
+              aria-label={t("Preview sound")}
+              title={t("Preview sound")}
               onClick={() => playSound(deleteFileSound)}
             />
           </div>
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="success-sound">Enqueue Success Sound</Label>
+          <Label htmlFor="enqueue-success-sound">
+            {t("Enqueue Success Sound")}
+          </Label>
           <div className="flex items-center gap-2">
             <Select
-              id="success-sound"
+              id="enqueue-success-sound"
               value={enqueueSuccessSound}
               onChange={(val: SelectValue) => setEnqueueSuccessSound(val as string)}
               options={SoundManager.OPTIONS}
@@ -147,16 +153,20 @@ export const AudioSettingsPane = (args: AudioSettingsPaneProps) => {
               variant="primary"
               className="w-[40px] h-[40px]"
               icon={PlayIcon}
+              aria-label={t("Preview sound")}
+              title={t("Preview sound")}
               onClick={() => playSound(enqueueSuccessSound)}
             />
           </div>
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="success-sound">Enqueue Failure Sound</Label>
+          <Label htmlFor="enqueue-failure-sound">
+            {t("Enqueue Failure Sound")}
+          </Label>
           <div className="flex items-center gap-2">
             <Select
-              id="success-sound"
+              id="enqueue-failure-sound"
               value={enqueueFailureSound}
               onChange={(val: SelectValue) => setEnqueueFailureSound(val as string)}
               options={SoundManager.OPTIONS}
@@ -166,16 +176,20 @@ export const AudioSettingsPane = (args: AudioSettingsPaneProps) => {
               variant="primary"
               className="w-[40px] h-[40px]"
               icon={PlayIcon}
+              aria-label={t("Preview sound")}
+              title={t("Preview sound")}
               onClick={() => playSound(enqueueFailureSound)}
             />
           </div>
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="success-sound">Generation Success Sound</Label>
+          <Label htmlFor="generation-success-sound">
+            {t("Generation Success Sound")}
+          </Label>
           <div className="flex items-center gap-2">
             <Select
-              id="success-sound"
+              id="generation-success-sound"
               value={generationSuccessSound}
               onChange={(val: SelectValue) => setSuccessSound(val as string)}
               options={SoundManager.OPTIONS}
@@ -185,16 +199,20 @@ export const AudioSettingsPane = (args: AudioSettingsPaneProps) => {
               variant="primary"
               className="w-[40px] h-[40px]"
               icon={PlayIcon}
+              aria-label={t("Preview sound")}
+              title={t("Preview sound")}
               onClick={() => playSound(generationSuccessSound)}
             />
           </div>
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="failure-sound">Generation Failure Sound</Label>
+          <Label htmlFor="generation-failure-sound">
+            {t("Generation Failure Sound")}
+          </Label>
           <div className="flex items-center gap-2">
             <Select
-              id="failure-sound"
+              id="generation-failure-sound"
               value={generationFailureSound}
               onChange={(val: SelectValue) => setFailureSound(val as string)}
               options={SoundManager.OPTIONS}
@@ -204,6 +222,8 @@ export const AudioSettingsPane = (args: AudioSettingsPaneProps) => {
               variant="primary"
               className="w-[40px] h-[40px]"
               icon={PlayIcon}
+              aria-label={t("Preview sound")}
+              title={t("Preview sound")}
               onClick={() => playSound(generationFailureSound)}
             />
           </div>

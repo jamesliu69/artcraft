@@ -4,6 +4,7 @@ import { Switch } from "@storyteller/ui-switch";
 import { gtagEvent } from "@storyteller/google-analytics";
 import { useExperimentalStore } from "../experimental-store";
 import { ExperimentalConfirmModal } from "../ExperimentalConfirmModal";
+import { useTranslation } from "@storyteller/common";
 
 interface Props {
   // Called immediately before the storyboard flag flips off, so the host app
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export const ExperimentalSettingsPane = ({ onStoryboardPageDisable }: Props) => {
+  const { t } = useTranslation();
   const storyboardPageEnabled = useExperimentalStore(
     (s) => s.storyboardPageEnabled,
   );
@@ -48,10 +50,11 @@ export const ExperimentalSettingsPane = ({ onStoryboardPageDisable }: Props) => 
       <div className="space-y-4 text-base-fg">
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-0.5">
-            <Label htmlFor="experimental-storyboard-page">Storyboard page</Label>
+            <Label htmlFor="experimental-storyboard-page">
+              {t("Storyboard page")}
+            </Label>
             <p className="text-xs opacity-70">
-              Show the Storyboard page in the apps menu. In-development; expect
-              rough edges.
+              {t("Show the Storyboard page in the apps menu. In-development; expect rough edges.")}
             </p>
           </div>
           <Switch

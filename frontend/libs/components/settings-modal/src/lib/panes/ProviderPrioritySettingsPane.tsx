@@ -24,6 +24,7 @@ import {
 } from "@storyteller/tauri-api";
 import { getCreatorIcon, ModelCreator } from "@storyteller/model-list";
 import { IsDesktopApp } from "@storyteller/tauri-utils";
+import { useTranslation } from "@storyteller/common";
 
 interface ProviderItem {
   id: Provider;
@@ -108,13 +109,15 @@ const getProviderIcon = (provider: Provider): ReactNode => {
           ? "/resources/images/services/generic.svg"
           : "/images/services/generic.svg"
       }
-      alt="generic logo"
+      alt=""
+      aria-hidden="true"
       className="h-4 w-4 icon-auto-contrast"
     />
   );
 };
 
 export const ProviderPrioritySettingsPane = () => {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ProviderItem[]>([]);
 
   const [isUpdating, setIsUpdating] = useState(false);
@@ -189,9 +192,7 @@ export const ProviderPrioritySettingsPane = () => {
     <div className="space-y-4 pt-3">
       <div>
         <p className="text-xs text-base-fg/70 mb-4">
-          Drag and drop to reorder model provider priority. Higher items will be
-          tried first. You can use this to control favorite services and
-          spending.
+          {t("Drag and drop to reorder model provider priority. Higher items will be tried first. You can use this to control favorite services and spending.")}
         </p>
       </div>
 
@@ -218,7 +219,7 @@ export const ProviderPrioritySettingsPane = () => {
       {isUpdating && (
         <div className="mt-4 flex animate-pulse items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-base-fg/70">
           <LoaderCircleIcon className="animate-spin" />
-          Updating...
+          {t("Updating...")}
         </div>
       )}
     </div>
