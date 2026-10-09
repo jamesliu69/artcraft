@@ -1,4 +1,5 @@
 import { GenerationProvider } from "@storyteller/common";
+import { useTranslation } from "@storyteller/common";
 
 interface GenericProviderBillingBlockProps {
   provider: GenerationProvider;
@@ -7,18 +8,20 @@ interface GenericProviderBillingBlockProps {
 export function GenericProviderBillingBlock({
   provider
 }: GenericProviderBillingBlockProps) {
+  const { t } = useTranslation();
 
   const serviceProviderName = getServiceProviderName(provider);
 
   return (
     <div className="flex w-full flex-col gap-3 text-base-fg">
-      <p className="hud-label text-base-fg/55">Billing</p>
+      <p className="hud-label text-base-fg/55">{t("Billing")}</p>
       <h2 className="font-display text-2xl font-medium tracking-[-0.02em]">
-        Set up {serviceProviderName}
+        {t("Set up {provider}", { provider: serviceProviderName })}
       </h2>
       <p className="text-sm leading-relaxed text-base-fg/60">
-        Please set up {serviceProviderName} on their website to use it with
-        ArtCraft.
+        {t("Set up {provider} on their website to use it with ArtCraft.", {
+          provider: serviceProviderName,
+        })}
       </p>
     </div>
   );

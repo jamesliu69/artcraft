@@ -22,19 +22,22 @@ export function is3DMediaClass(mediaClass: string | undefined | null): boolean {
 }
 
 /** Plural noun for batch captions, e.g. "Generating 4 images". */
-export function batchNoun(mediaClass: GenerationMediaClass): string {
+export function batchNoun(
+  mediaClass: GenerationMediaClass,
+  t: (source: string) => string = (source) => source,
+): string {
   switch (mediaClass) {
     case "video":
-      return "videos";
+      return t("videos");
     case "audio":
-      return "audio clips";
+      return t("audio clips");
     case "dimensional":
     case "mesh":
-      return "3D models";
+      return t("3D models");
     case "splat":
-      return "3D worlds";
+      return t("3D worlds");
     default:
-      return "images";
+      return t("images");
   }
 }
 

@@ -10,6 +10,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "@storyteller/common";
 import { GalleryItem } from "./gallery-modal";
 import { GalleryFolder } from "./GalleryDraggableItem";
 import { compareFolders } from "./folderUtils";
@@ -55,6 +56,7 @@ export const GalleryItemMenuItems: React.FC<GalleryItemMenuItemsProps> = ({
   onDelete,
   close,
 }) => {
+  const { t } = useTranslation();
   const [folderSubmenuOpen, setFolderSubmenuOpen] = useState(false);
 
   return (
@@ -72,12 +74,12 @@ export const GalleryItemMenuItems: React.FC<GalleryItemMenuItemsProps> = ({
           <EyeIcon className="text-base-fg w-4" />
           <span>
             {item.mediaClass === "video"
-              ? "View video"
+              ? t("View video")
               : item.mediaClass === "dimensional" ||
                   item.mediaClass === "mesh" ||
                   item.mediaClass === "splat"
-                ? "View 3D"
-                : "View image"}
+                ? t("View 3D")
+                : t("View image")}
           </span>
         </button>
       )}
@@ -95,7 +97,7 @@ export const GalleryItemMenuItems: React.FC<GalleryItemMenuItemsProps> = ({
           }}
         >
           <PencilIcon className="text-base-fg w-4" />
-          <span>Edit image</span>
+          <span>{t("Edit image")}</span>
         </button>
       )}
 
@@ -120,7 +122,7 @@ export const GalleryItemMenuItems: React.FC<GalleryItemMenuItemsProps> = ({
           >
             <div className="flex items-center gap-2">
               <FolderPlusIcon className="text-base-fg w-4" />
-              <span>Add to Folder</span>
+              <span>{t("Add to Folder")}</span>
             </div>
             <ChevronRightIcon
               className={twMerge(
@@ -139,6 +141,7 @@ export const GalleryItemMenuItems: React.FC<GalleryItemMenuItemsProps> = ({
                   folders={folders}
                   onAddToFolder={onAddToFolder}
                   onCreateFolderFromMenu={onCreateFolderFromMenu}
+                  t={t}
                   closeAll={() => {
                     setFolderSubmenuOpen(false);
                     close();
@@ -153,6 +156,7 @@ export const GalleryItemMenuItems: React.FC<GalleryItemMenuItemsProps> = ({
                     folders={folders}
                     onAddToFolder={onAddToFolder}
                     onCreateFolderFromMenu={onCreateFolderFromMenu}
+                    t={t}
                     closeAll={() => {
                       setFolderSubmenuOpen(false);
                       close();
@@ -175,7 +179,7 @@ export const GalleryItemMenuItems: React.FC<GalleryItemMenuItemsProps> = ({
           }}
         >
           <FolderMinusIcon className="text-base-fg w-4" />
-          <span>Remove from folder</span>
+          <span>{t("Remove from folder")}</span>
         </button>
       )}
 
@@ -190,7 +194,7 @@ export const GalleryItemMenuItems: React.FC<GalleryItemMenuItemsProps> = ({
           }}
         >
           <Trash2Icon className="text-red w-4" />
-          <span className="text-red">Delete</span>
+          <span className="text-red">{t("Delete")}</span>
         </button>
       )}
     </div>
@@ -204,12 +208,14 @@ const FolderList = ({
   onAddToFolder,
   onCreateFolderFromMenu,
   closeAll,
+  t,
 }: {
   item: GalleryItem;
   folders: GalleryFolder[];
   onAddToFolder?: (itemIds: string[], folderId: string) => void;
   onCreateFolderFromMenu?: () => void;
   closeAll: () => void;
+  t: (source: string, params?: Record<string, string | number>) => string;
 }) => (
   <>
     {/* Same ordering as the sidebar / folder chips: starred first, then
@@ -245,7 +251,7 @@ const FolderList = ({
       }}
     >
       <PlusIcon className="text-xs w-4" />
-      <span>New Folder</span>
+      <span>{t("New Folder")}</span>
     </button>
   </>
 );

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useTranslation } from "@storyteller/common";
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon, CrosshairIcon, DownloadIcon, ImagesIcon } from "lucide-react";
 import { Button, GenerateButton } from "@storyteller/ui-button";
 import { GalleryItem, GalleryModal } from "@storyteller/ui-gallery-modal";
@@ -48,6 +49,7 @@ const ANGLES_MODEL_PAGE = ModelPage.Angles;
 // ─── Main Angles Component ─────────────────────────────────────────────────────
 
 export const Angles = () => {
+  const { t } = useTranslation();
   const anglesModelList = useAnglesPageModelList();
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>(
@@ -221,11 +223,11 @@ export const Angles = () => {
         setIsLoadingImage(false);
       } catch (error) {
         console.error("Error processing image:", error);
-        toast.error("Failed to process image");
+        toast.error(t("Failed to process image"));
         setIsLoadingImage(false);
       }
     },
-    [setSourceImage, setImageDimensions, setIsLoadingImage],
+    [setSourceImage, setImageDimensions, setIsLoadingImage, t],
   );
 
   const handleImageSelect = useCallback((id: string) => {
@@ -240,7 +242,7 @@ export const Angles = () => {
     async (selectedItems: GalleryItem[]) => {
       const item = selectedItems[0];
       if (!item || !item.fullImage) {
-        toast.error("No image selected");
+        toast.error(t("No image selected"));
         return;
       }
 
@@ -269,11 +271,11 @@ export const Angles = () => {
         setIsLoadingImage(false);
       } catch (error) {
         console.error("Error processing gallery image:", error);
-        toast.error("Failed to process image");
+        toast.error(t("Failed to process image"));
         setIsLoadingImage(false);
       }
     },
-    [setSourceImage, setImageDimensions, setIsLoadingImage],
+    [setSourceImage, setImageDimensions, setIsLoadingImage, t],
   );
 
   // ─── Generate with subscriber pattern ───────────────────────────────────────
@@ -303,24 +305,24 @@ export const Angles = () => {
       });
     } catch (error) {
       console.error("Error generating angle:", error);
-      toast.error("Failed to generate angle");
+      toast.error(t("Failed to generate angle"));
       useAnglesStore.getState().removePendingSubscriber(subscriberId);
     }
-  }, [selectedModel, selectedProvider]);
+  }, [selectedModel, selectedProvider, t]);
 
   const handleDownload = useCallback(async () => {
     if (!activeAngle) {
-      toast.error("No image to download");
+      toast.error(t("No image to download"));
       return;
     }
     try {
       await downloadFileFromUrl(activeAngle.imageUrl);
-      toast.success("Image saved to Downloads folder");
+      toast.success(t("Image saved to Downloads folder"));
     } catch (error) {
       console.error("Download failed:", error);
-      toast.error("Failed to download image");
+      toast.error(t("Failed to download image"));
     }
-  }, [activeAngle]);
+  }, [activeAngle, t]);
 
   // Called when user releases the sphere drag — values are already snapped
   const handleSphereDragEnd = useCallback(
@@ -484,14 +486,14 @@ export const Angles = () => {
               <div className="relative aspect-video overflow-hidden border border-ui-panel-border bg-ui-panel">
                 <UploadEntryCard
                   icon={CrosshairIcon}
-                  title="Angles"
-                  description="Generate new camera angles from a single photo. Upload an image to get started."
+                  title={t("Angles")}
+                  description={t("Generate new camera angles from a single photo. Upload an image to get started.")}
                   accentBackgroundClass="bg-lime-500/20"
                   accentBorderClass="border-lime-500/40"
                   accept="image/*"
                   onFilesSelected={handleLocalImageSelect}
-                  primaryLabel="Upload media"
-                  secondaryLabel="Pick from Library"
+                  primaryLabel={t("Upload media")}
+                  secondaryLabel={t("Pick from Library")}
                   secondaryIcon={ImagesIcon}
                   onSecondaryClick={handleOpenGallery}
                   disabled={isLoadingImage}
@@ -524,13 +526,13 @@ export const Angles = () => {
                 {activeAngle ? (
                   <img
                     src={activeAngle.imageUrl}
-                    alt="Generated Angle"
+                    alt={t("Generated angle")}
                     className="absolute inset-0 h-full w-full object-contain"
                   />
                 ) : sourceImageUrl ? (
                   <img
                     src={sourceImageUrl}
-                    alt="Source"
+                    alt={t("Source image")}
                     className="absolute inset-0 h-full w-full object-contain"
                   />
                 ) : (
@@ -549,7 +551,7 @@ export const Angles = () => {
                   onClick={handleChangeImage}
                   className="select-none px-4 py-1.5 text-sm font-medium transition-all"
                 >
-                  Change Image
+                  {t("Change Image")}
                 </Button>
                 {activeAngle && (
                   <Button
@@ -562,7 +564,7 @@ export const Angles = () => {
                       isProcessing && "cursor-not-allowed opacity-50",
                     )}
                   >
-                    Download
+                    {t("Download")}
                   </Button>
                 )}
               </div>
@@ -587,6 +589,8 @@ export const Angles = () => {
                 {/* Orbit sphere */}
                 <div className="relative shrink-0 px-5 py-5">
                   <button
+                    type="button"
+                    aria-label={t("Increase tilt")}
                     onClick={() => handleTiltStep(1)}
                     className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-[3px] p-1 text-base-fg/40 transition-colors hover:text-base-fg/80"
                   >
@@ -595,6 +599,8 @@ export const Angles = () => {
                       className="text-[10px]" />
                   </button>
                   <button
+                    type="button"
+                    aria-label={t("Decrease tilt")}
                     onClick={() => handleTiltStep(-1)}
                     className="absolute bottom-0 left-1/2 z-10 -translate-x-1/2 rounded-[3px] p-1 text-base-fg/40 transition-colors hover:text-base-fg/80"
                   >
@@ -603,6 +609,8 @@ export const Angles = () => {
                       className="text-[10px]" />
                   </button>
                   <button
+                    type="button"
+                    aria-label={t("Rotate left")}
                     onClick={() => handleRotationStep(-1)}
                     className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-[3px] p-1 text-base-fg/40 transition-colors hover:text-base-fg/80"
                   >
@@ -611,6 +619,8 @@ export const Angles = () => {
                       className="text-[10px]" />
                   </button>
                   <button
+                    type="button"
+                    aria-label={t("Rotate right")}
                     onClick={() => handleRotationStep(1)}
                     className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-[3px] p-1 text-base-fg/40 transition-colors hover:text-base-fg/80"
                   >
@@ -633,7 +643,7 @@ export const Angles = () => {
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <div className="flex items-center gap-3">
                     <span className="w-16 shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">
-                      Rotation
+                      {t("Rotation")}
                     </span>
                     <div className="min-w-0 flex-1">
                       <SliderV2
@@ -652,7 +662,7 @@ export const Angles = () => {
 
                   <div className="flex items-center gap-3">
                     <span className="w-16 shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">
-                      Tilt
+                      {t("Tilt")}
                     </span>
                     <div className="min-w-0 flex-1">
                       <SliderV2
@@ -671,7 +681,7 @@ export const Angles = () => {
 
                   <div className="flex items-center gap-3">
                     <span className="w-16 shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">
-                      Zoom
+                      {t("Zoom")}
                     </span>
                     <div className="min-w-0 flex-1">
                       <SliderV2
@@ -730,7 +740,7 @@ export const Angles = () => {
                     credits={anglesCredits}
                     className="whitespace-nowrap px-5 py-1.5 text-sm"
                   >
-                    Generate
+                    {t("Generate")}
                   </GenerateButton>
                 </div>
               </div>

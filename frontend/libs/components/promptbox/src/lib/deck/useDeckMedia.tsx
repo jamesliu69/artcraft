@@ -3,7 +3,7 @@ import { GalleryItem, GalleryModal } from "@storyteller/ui-gallery-modal";
 import { type UploadMediaFn } from "@storyteller/api";
 import { downloadFileFromUrl } from "@storyteller/tauri-api";
 import { toast } from "@storyteller/ui-toaster";
-import { UploaderStates } from "@storyteller/common";
+import { UploaderStates, useTranslation } from "@storyteller/common";
 import {
   AUDIO_FILE_ACCEPT,
   AUDIO_FILE_TYPE_ERROR,
@@ -67,10 +67,19 @@ export interface UseDeckMediaOptions<
 const randomId = () => Math.random().toString(36).substring(7);
 
 // A non-finite duration cap means "no limit" — leave it out of the message.
-const videoLimitMessage = (maxVideos: number, maxTotalSec: number) =>
+const videoLimitMessage = (
+  maxVideos: number,
+  maxTotalSec: number,
+  t: (source: string, params?: Record<string, string | number>) => string,
+) =>
   isFinite(maxTotalSec)
-    ? `Max ${maxVideos} videos / ${maxTotalSec}s total`
-    : `Max ${maxVideos} video${maxVideos === 1 ? "" : "s"}`;
+    ? t("Max {count} videos / {seconds}s total", {
+        count: maxVideos,
+        seconds: maxTotalSec,
+      })
+    : t(maxVideos === 1 ? "Max {count} video" : "Max {count} videos", {
+        count: maxVideos,
+      });
 
 const randomTitle = (prefix: string) =>
   `${prefix}-${Math.random().toString(36).substring(2, 15)}`;
@@ -141,6 +150,7 @@ export function useDeckMedia<
   uploadAudio,
   ownGalleryModal,
 }: UseDeckMediaOptions<TImage, TVideo, TAudio>) {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoFileInputRef = useRef<HTMLInputElement>(null);
   const audioFileInputRef = useRef<HTMLInputElement>(null);
@@ -357,7 +367,7 @@ export function useDeckMedia<
     const baseVideos = [...referenceVideos];
     const availableSlots = Math.max(0, maxVideos - baseVideos.length);
     if (availableSlots <= 0) {
-      toast.error(videoLimitMessage(maxVideos, maxVideoTotalSec), {
+      toast.error(videoLimitMessage(maxVideos, maxVideoTotalSec, t), {
         id: "video-ref-limit",
       });
       return;
@@ -371,9 +381,12 @@ export function useDeckMedia<
       const currentTotal = committed.reduce((sum, v) => sum + v.duration, 0);
 
       if (currentTotal + duration > maxVideoTotalSec) {
-        toast.error(`Total video duration cannot exceed ${maxVideoTotalSec}s`, {
-          id: "video-ref-limit",
-        });
+        toast.error(
+          t("Total video duration cannot exceed {seconds}s", {
+            seconds: maxVideoTotalSec,
+          }),
+          { id: "video-ref-limit" },
+        );
         break;
       }
 
@@ -409,7 +422,7 @@ export function useDeckMedia<
             ) {
               URL.revokeObjectURL(entry.previewUrl);
               setUploadingVideo(null);
-              toast.error("Failed to upload video. Please upload an MP4 file.");
+              toast.error(t("Failed to upload video. Please upload an MP4 file."));
             }
           },
         });
@@ -431,7 +444,7 @@ export function useDeckMedia<
   const processAudioFiles = async (files: File[]) => {
     const audioFiles = files.filter(isAudioFile);
     if (audioFiles.length < files.length) {
-      toast.error(AUDIO_FILE_TYPE_ERROR, { id: "audio-ref-type" });
+      toast.error(t(AUDIO_FILE_TYPE_ERROR), { id: "audio-ref-type" });
     }
     if (audioFiles.length === 0) return;
 
@@ -450,7 +463,11 @@ export function useDeckMedia<
       );
 
       if (currentTotal + duration > maxAudioTotalSec) {
-        toast.error(`Total audio duration cannot exceed ${maxAudioTotalSec}s`);
+        toast.error(
+          t("Total audio duration cannot exceed {seconds}s", {
+            seconds: maxAudioTotalSec,
+          }),
+        );
         break;
       }
 
@@ -557,7 +574,7 @@ export function useDeckMedia<
       const baseVideos = [...referenceVideos];
       const availableSlots = Math.max(0, maxVideos - baseVideos.length);
       if (availableSlots <= 0) {
-        toast.error(videoLimitMessage(maxVideos, maxVideoTotalSec), {
+        toast.error(videoLimitMessage(maxVideos, maxVideoTotalSec, t), {
           id: "video-ref-limit",
         });
         handleGalleryClose();
@@ -600,7 +617,9 @@ export function useDeckMedia<
         }
         if (exceeded) {
           toast.error(
-            `Total video duration cannot exceed ${maxVideoTotalSec}s`,
+            t("Total video duration cannot exceed {seconds}s", {
+              seconds: maxVideoTotalSec,
+            }),
             { id: "video-ref-limit" },
           );
         }
@@ -617,9 +636,13 @@ export function useDeckMedia<
       const baseAudios = [...referenceAudios];
       const availableSlots = Math.max(0, maxAudios - baseAudios.length);
       if (availableSlots <= 0) {
-        toast.error(`Max ${maxAudios} audio tracks / ${maxAudioTotalSec}s total`, {
-          id: "audio-ref-limit",
-        });
+        toast.error(
+          t("Max {count} audio tracks / {seconds}s total", {
+            count: maxAudios,
+            seconds: maxAudioTotalSec,
+          }),
+          { id: "audio-ref-limit" },
+        );
         handleGalleryClose();
         return;
       }
@@ -664,7 +687,9 @@ export function useDeckMedia<
         }
         if (exceeded) {
           toast.error(
-            `Total audio duration cannot exceed ${maxAudioTotalSec}s`,
+            t("Total audio duration cannot exceed {seconds}s", {
+              seconds: maxAudioTotalSec,
+            }),
             { id: "audio-ref-limit" },
           );
         }

@@ -4,6 +4,7 @@ import { ImagesIcon, MusicIcon, VideoIcon } from "lucide-react";
 import { DynamicIcon } from "@storyteller/icons";
 import { toast } from "@storyteller/ui-toaster";
 import { IsDesktopApp } from "@storyteller/tauri-utils";
+import { useTranslation } from "@storyteller/common";
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -117,12 +118,27 @@ const kindOfPath = (path: string): DropKind | null => {
   return null;
 };
 
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
-const listKinds = (labels: string[]) =>
+const listKinds = (
+  labels: string[],
+  t: (source: string) => string,
+) =>
   labels.length <= 1
     ? (labels[0] ?? "")
-    : `${labels.slice(0, -1).join(", ")} or ${labels[labels.length - 1]}`;
+    : `${labels.slice(0, -1).join(", ")} ${t("or")} ${labels[labels.length - 1]}`;
+
+const localizedKindLabels = (
+  labels: string[],
+  t: (source: string) => string,
+) =>
+  labels.map((label) =>
+    t(
+      label === "image"
+        ? "Image"
+        : label === "video"
+          ? "Video"
+          : "Audio",
+    ),
+  );
 
 /**
  * Makes the prompt box a drop target for reference media, and catches
@@ -142,6 +158,7 @@ export function usePromptBoxDrop({
   acceptsAudio,
   onDropFiles,
 }: UsePromptBoxDropOptions) {
+  const { t } = useTranslation();
   const [dragState, setDragState] = useState<DropDragState>("idle");
   const zoneRef = useRef<HTMLDivElement>(null);
   // Second zone for the focus-mode modal (PromptFullscreenModal); mounted
@@ -199,11 +216,21 @@ export function usePromptBoxDrop({
     // because the current input mode (e.g. keyframes) doesn't show it.
     if (rejectedKinds.size > 0) {
       toast.error(
-        `${capitalize(listKinds([...rejectedKinds]))} references aren't available here`,
+        t("{types} references aren't available here", {
+          types: listKinds(localizedKindLabels([...rejectedKinds], t), t),
+        }),
       );
     } else if (unknownCount > 0 && !anyAccepted) {
       toast.error(
-        `Only ${listKinds(acceptedKindLabels(acceptsImages, acceptsVideos, acceptsAudio))} files can be added here`,
+        t("Only {types} files can be added here", {
+          types: listKinds(
+            localizedKindLabels(
+              acceptedKindLabels(acceptsImages, acceptsVideos, acceptsAudio),
+              t,
+            ),
+            t,
+          ),
+        }),
       );
     }
   };
@@ -371,7 +398,9 @@ export function usePromptBoxDrop({
           const failedCount = readable.length - readFiles.length;
           if (failedCount > 0) {
             toast.error(
-              `Couldn't read ${failedCount} file${failedCount > 1 ? "s" : ""}`,
+              t(failedCount === 1 ? "Couldn't read {count} file" : "Couldn't read {count} files", {
+                count: failedCount,
+              }),
             );
           }
 
@@ -452,14 +481,15 @@ export function PromptBoxDropOverlay({
   acceptsAudio,
   keyframeMode,
 }: PromptBoxDropOverlayProps) {
+  const { t } = useTranslation();
   if (dragState === "idle") return null;
 
   const kinds = [
     ...(acceptsImages
-      ? [{ icon: ImagesIcon, label: keyframeMode ? "Frames" : "Images" }]
+      ? [{ icon: ImagesIcon, label: t(keyframeMode ? "Frames" : "Images") }]
       : []),
-    ...(acceptsVideos ? [{ icon: VideoIcon, label: "Video" }] : []),
-    ...(acceptsAudio ? [{ icon: MusicIcon, label: "Audio" }] : []),
+    ...(acceptsVideos ? [{ icon: VideoIcon, label: t("Video") }] : []),
+    ...(acceptsAudio ? [{ icon: MusicIcon, label: t("Audio") }] : []),
   ];
   const rejected = dragState === "reject";
 
@@ -483,14 +513,22 @@ export function PromptBoxDropOverlay({
       </div>
       <div className="text-sm font-semibold text-base-fg">
         {rejected
-          ? "That file type isn't supported"
+          ? t("That file type isn't supported")
           : keyframeMode && !acceptsVideos && !acceptsAudio
-            ? "Drop to set your frames"
-            : "Drop to add references"}
+            ? t("Drop to set your frames")
+            : t("Drop to add references")}
       </div>
       <div className="-mt-1 text-xs text-base-fg/60">
         {rejected
-          ? `Accepts ${listKinds(acceptedKindLabels(acceptsImages, acceptsVideos, acceptsAudio))} files`
+          ? t("Accepts {types} files", {
+              types: listKinds(
+                localizedKindLabels(
+                  acceptedKindLabels(acceptsImages, acceptsVideos, acceptsAudio),
+                  t,
+                ),
+                t,
+              ),
+            })
           : kinds.map((kind) => kind.label).join(" · ")}
       </div>
     </div>

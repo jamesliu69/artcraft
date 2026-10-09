@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "@storyteller/common";
 
 const CORNERS = [
   "top-0 left-0",
@@ -24,6 +25,7 @@ export function CreateEmptyState({
   compact = false,
   className,
 }: CreateEmptyStateProps) {
+  const { t } = useTranslation();
   return (
     <section
       className={twMerge(
@@ -38,10 +40,10 @@ export function CreateEmptyState({
           compact ? "text-2xl" : "text-3xl md:text-5xl",
         )}
       >
-        {title}
+        {t(title)}
       </h1>
       <p className="mt-4 max-w-xl text-pretty text-sm leading-relaxed text-white/60 sm:text-base">
-        {subtitle}
+        {t(subtitle)}
       </p>
       {children && <div className="mt-6">{children}</div>}
       {CORNERS.map((corner) => (

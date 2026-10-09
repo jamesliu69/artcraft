@@ -48,6 +48,7 @@ import {
   THUMBNAIL_SIZES,
   PLACEHOLDER_IMAGES,
   is3DModelUrl,
+  useTranslation,
 } from "@storyteller/common";
 import {
   galleryModalDraggingUnder,
@@ -240,6 +241,8 @@ LazyDateGroup.displayName = "LazyDateGroup";
 export interface GalleryItem {
   id: string;
   label: string;
+  /** Translation key for a built-in media descriptor; user-supplied titles stay raw. */
+  labelTranslationKey?: string;
   thumbnail: string | null;
   // Thumbnail template is not a usable URL yet. It has some variables
   // like `{WIDTH}` which must be replaced downstream.
@@ -363,10 +366,8 @@ const is3DClass = (mediaClass: string | undefined | null): boolean =>
   mediaClass === "mesh" ||
   mediaClass === "splat";
 
-const getLabel = (item: any) => {
-  if (!!item.maybe_title) {
-    return item.maybe_title;
-  }
+const getLabelTranslationKey = (item: any): string | undefined => {
+  if (item.maybe_title) return undefined;
   switch (item.media_class) {
     case "image":
       return "Image Generation";
@@ -384,9 +385,12 @@ const getLabel = (item: any) => {
   }
 };
 
-const formatDate = (date: string) => {
+const getLabel = (item: any) =>
+  item.maybe_title || getLabelTranslationKey(item) || "Generation";
+
+const formatDate = (date: string, locale: string) => {
   const d = new Date(date);
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleDateString(locale === "zh-TW" ? "zh-TW" : "en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -416,9 +420,11 @@ const hashString = (s: string): number => {
 function TagCloudView({
   tags,
   onOpen,
+  t,
 }: {
   tags: TagDetails[];
   onOpen: (tagToken: string) => void;
+  t: (source: string, params?: Record<string, string | number>) => string;
 }) {
   const words = useMemo(() => {
     const counts = tags.map((t) => t.use_count);
@@ -441,7 +447,11 @@ function TagCloudView({
             key={tag.tag_token}
             type="button"
             onClick={() => onOpen(tag.tag_token)}
-            title={`${tag.use_count} file${tag.use_count === 1 ? "" : "s"}`}
+            title={
+              tag.use_count === 1
+                ? t("1 file")
+                : t("{count} files", { count: tag.use_count })
+            }
             style={{ fontSize: `${Math.round(15 + weight * 33)}px` }}
             className={twMerge(
               "max-w-full truncate leading-none transition-all duration-200 hover:scale-110 hover:text-violet-400",
@@ -509,6 +519,7 @@ const FolderContextMenuItems = ({
   onSetColor,
   className,
   style,
+  t,
 }: {
   folderId: string;
   hasStar?: boolean;
@@ -520,6 +531,7 @@ const FolderContextMenuItems = ({
   onSetColor: (id: string, color: string | null) => void;
   className?: string;
   style?: React.CSSProperties;
+  t: (source: string, params?: Record<string, string | number>) => string;
 }) => (
   <div
     className={twMerge(
@@ -539,7 +551,7 @@ const FolderContextMenuItems = ({
           hasStar ? "text-amber-400" : "text-base-fg/40",
         )}
       />
-      <span>{hasStar ? "Unstar" : "Star"}</span>
+      <span>{hasStar ? t("Unstar") : t("Star")}</span>
     </button>
     <FolderColorRow
       colorCode={colorCode}
@@ -552,7 +564,7 @@ const FolderContextMenuItems = ({
       onClick={() => onNewSubfolder(folderId)}
     >
       <FolderPlusIcon className="w-4" />
-      <span>New subfolder</span>
+      <span>{t("New subfolder")}</span>
     </button>
     <button
       type="button"
@@ -560,7 +572,7 @@ const FolderContextMenuItems = ({
       onClick={() => onRename(folderId)}
     >
       <PencilIcon className="w-4" />
-      <span>Rename</span>
+      <span>{t("Rename")}</span>
     </button>
     <button
       type="button"
@@ -568,7 +580,7 @@ const FolderContextMenuItems = ({
       onClick={() => onDelete(folderId)}
     >
       <Trash2Icon className="w-4" />
-      <span>Delete folder</span>
+      <span>{t("Delete folder")}</span>
     </button>
   </div>
 );
@@ -598,6 +610,7 @@ export const GalleryModal = React.memo(
     onDeleteMedia,
     subscribeToMediaEvents,
   }: GalleryModalProps) => {
+    const { t, locale } = useTranslation();
     const [loading, setLoading] = useState(false);
     // Separate state for pagination spinner (bottom of list) — not shared with background refresh
     const [paginationLoading, setPaginationLoading] = useState(false);
@@ -814,7 +827,7 @@ export const GalleryModal = React.memo(
 
     const groupItemsByDate = useCallback((items: GalleryItem[]) => {
       const grouped = items.reduce((acc: GroupedItems, item) => {
-        const dateKey = formatDate(item.createdAt);
+        const dateKey = formatDate(item.createdAt, locale);
         if (!acc[dateKey]) {
           acc[dateKey] = [];
         }
@@ -830,7 +843,7 @@ export const GalleryModal = React.memo(
             new Date(a[1][0].createdAt).getTime(),
         ),
       );
-    }, []);
+    }, [locale]);
 
     // Memoize the grouped result so we don't recompute on every render
     const groupedItems = useMemo(
@@ -992,6 +1005,7 @@ export const GalleryModal = React.memo(
       (item: any): GalleryItem => ({
         id: item.token,
         label: getLabel(item),
+        labelTranslationKey: getLabelTranslationKey(item),
         thumbnail:
           item.media_class === "audio"
             ? null
@@ -1036,6 +1050,7 @@ export const GalleryModal = React.memo(
       (item: FolderMediaFileListItem | TagMediaFileListItem): GalleryItem => ({
         id: item.token,
         label: getLabel(item),
+        labelTranslationKey: getLabelTranslationKey(item),
         thumbnail:
           item.media_class === "audio"
             ? null
@@ -1644,15 +1659,25 @@ export const GalleryModal = React.memo(
       const count = bulkSelectedIds.size;
       showActionReminder({
         reminderType: "default",
-        title: `Delete ${count} item${count > 1 ? "s" : ""}?`,
+        title:
+          count === 1
+            ? t("Delete {count} item?", { count })
+            : t("Delete {count} items?", { count }),
         message: (
           <p className="text-sm text-white/70">
-            This will permanently remove {count} item{count > 1 ? "s" : ""} from
-            your library. This action cannot be undone.
+            {count === 1
+              ? t(
+                  "This will permanently remove {count} item from your library. This action cannot be undone.",
+                  { count },
+                )
+              : t(
+                  "This will permanently remove {count} items from your library. This action cannot be undone.",
+                  { count },
+                )}
           </p>
         ),
-        primaryActionText: "Delete",
-        secondaryActionText: "Cancel",
+        primaryActionText: t("Delete"),
+        secondaryActionText: t("Cancel"),
         primaryActionBtnClassName: "bg-red text-white hover:bg-red/90",
         onPrimaryAction: async () => {
           try {
@@ -1672,7 +1697,7 @@ export const GalleryModal = React.memo(
           }
         },
       });
-    }, [bulkSelectedIds, clearBulkSelection, onDeleteMedia]);
+    }, [bulkSelectedIds, clearBulkSelection, onDeleteMedia, t]);
 
     // Load the full folder tree (paginated, newest first).
     const loadFolders = useCallback(async () => {
@@ -1837,15 +1862,17 @@ export const GalleryModal = React.memo(
               setBulkSelectedIds(new Set());
             }
           } else {
-            toast.error(res.errorMessage || "Failed to create folder.");
+            toast.error(res.errorMessage || t("Failed to create folder."));
           }
         } catch (err) {
           toast.error(
-            `Failed to create folder: ${err instanceof Error ? err.message : String(err)}`,
+            t("Failed to create folder: {error}", {
+              error: err instanceof Error ? err.message : String(err),
+            }),
           );
         }
       },
-      [newFolderParentId, newFolderItemIds, foldersApi, mapFolder],
+      [newFolderParentId, newFolderItemIds, foldersApi, mapFolder, t],
     );
 
     // Open the new-folder modal. `parentId` undefined → create in the folder
@@ -1977,17 +2004,19 @@ export const GalleryModal = React.memo(
             newName: trimmed,
           });
           if (!res.success) {
-            toast.error(res.errorMessage || "Failed to rename folder.");
+            toast.error(res.errorMessage || t("Failed to rename folder."));
             loadFolders();
           }
         } catch (err) {
           toast.error(
-            `Failed to rename folder: ${err instanceof Error ? err.message : String(err)}`,
+            t("Failed to rename folder: {error}", {
+              error: err instanceof Error ? err.message : String(err),
+            }),
           );
           loadFolders();
         }
       },
-      [renameValue, renamingFolderId, foldersApi, loadFolders],
+      [renameValue, renamingFolderId, foldersApi, loadFolders, t],
     );
 
     // Star / unstar a folder (optimistic + reconcile).
@@ -2003,17 +2032,19 @@ export const GalleryModal = React.memo(
             hasStar,
           });
           if (!res.success) {
-            toast.error(res.errorMessage || "Failed to update folder.");
+            toast.error(res.errorMessage || t("Failed to update folder."));
             loadFolders();
           }
         } catch (err) {
           toast.error(
-            `Failed to update folder: ${err instanceof Error ? err.message : String(err)}`,
+            t("Failed to update folder: {error}", {
+              error: err instanceof Error ? err.message : String(err),
+            }),
           );
           loadFolders();
         }
       },
-      [foldersApi, loadFolders, closeFolderMenus],
+      [foldersApi, loadFolders, closeFolderMenus, t],
     );
 
     // Set / clear a folder color (optimistic + reconcile).
@@ -2028,17 +2059,19 @@ export const GalleryModal = React.memo(
             colorCode,
           });
           if (!res.success) {
-            toast.error(res.errorMessage || "Failed to update folder color.");
+            toast.error(res.errorMessage || t("Failed to update folder color."));
             loadFolders();
           }
         } catch (err) {
           toast.error(
-            `Failed to update folder color: ${err instanceof Error ? err.message : String(err)}`,
+            t("Failed to update folder color: {error}", {
+              error: err instanceof Error ? err.message : String(err),
+            }),
           );
           loadFolders();
         }
       },
-      [foldersApi, loadFolders],
+      [foldersApi, loadFolders, t],
     );
 
     // Delete folder (works for any folder). The server soft-deletes only this
@@ -2052,17 +2085,19 @@ export const GalleryModal = React.memo(
         const hasSubfolders = folders.some((f) => f.parentId === folderId);
         showActionReminder({
           reminderType: "default",
-          title: `Delete "${folder.name}"?`,
+          title: t('Delete "{folder}"?', { folder: folder.name }),
           message: (
             <p className="text-sm text-white/70">
               {hasSubfolders
-                ? "This folder will be deleted and its subfolders moved to the top level. "
-                : "This folder will be deleted. "}
-              Items inside stay in your library.
+                ? t(
+                    "This folder will be deleted and its subfolders moved to the top level.",
+                  )
+                : t("This folder will be deleted.")}{" "}
+              {t("Items inside stay in your library.")}
             </p>
           ),
-          primaryActionText: "Delete",
-          secondaryActionText: "Cancel",
+          primaryActionText: t("Delete"),
+          secondaryActionText: t("Cancel"),
           primaryActionBtnClassName: "bg-red text-white hover:bg-red/90",
           onPrimaryAction: async () => {
             // Optimistic: drop this folder and reparent its direct children to
@@ -2088,11 +2123,13 @@ export const GalleryModal = React.memo(
                 folderToken: folderId,
               });
               if (!res.success) {
-                toast.error(res.errorMessage || "Failed to delete folder.");
+                toast.error(res.errorMessage || t("Failed to delete folder."));
               }
             } catch (err) {
               toast.error(
-                `Failed to delete folder: ${err instanceof Error ? err.message : String(err)}`,
+                t("Failed to delete folder: {error}", {
+                  error: err instanceof Error ? err.message : String(err),
+                }),
               );
             }
             // Reconcile authoritative orphan flags / parent pointers.
@@ -2100,7 +2137,7 @@ export const GalleryModal = React.memo(
           },
         });
       },
-      [folders, activeFolderId, closeFolderMenus, foldersApi, loadFolders],
+      [folders, activeFolderId, closeFolderMenus, foldersApi, loadFolders, t],
     );
 
     // Refs so the folder-drop listener stays stable while reading live state.
@@ -2168,18 +2205,25 @@ export const GalleryModal = React.memo(
             const name =
               folders.find((f) => f.id === folderId)?.name ?? "folder";
             toast.success(
-              `Added ${itemIds.length} item${itemIds.length === 1 ? "" : "s"} to ${name}`,
+              itemIds.length === 1
+                ? t("Added 1 item to {folder}", { folder: name })
+                : t("Added {count} items to {folder}", {
+                    count: itemIds.length,
+                    folder: name,
+                  }),
             );
           } else {
-            toast.error(res.errorMessage || "Failed to add to folder.");
+            toast.error(res.errorMessage || t("Failed to add to folder."));
           }
         } catch (err) {
           toast.error(
-            `Failed to add to folder: ${err instanceof Error ? err.message : String(err)}`,
+            t("Failed to add to folder: {error}", {
+              error: err instanceof Error ? err.message : String(err),
+            }),
           );
         }
       },
-      [resolveItems, bumpFolderCollage, folders, foldersApi],
+      [resolveItems, bumpFolderCollage, folders, foldersApi, t],
     );
     // Expose to `handleCreateFolder` (defined above) for the new-folder-with-items flow.
     addToFolderRef.current = handleAddToFolder;
@@ -2231,20 +2275,27 @@ export const GalleryModal = React.memo(
           if (res.success) {
             const name = folders.find((f) => f.id === target)?.name ?? "folder";
             toast.success(
-              `Moved ${itemIds.length} item${itemIds.length === 1 ? "" : "s"} to ${name}`,
+              itemIds.length === 1
+                ? t("Moved 1 item to {folder}", { folder: name })
+                : t("Moved {count} items to {folder}", {
+                    count: itemIds.length,
+                    folder: name,
+                  }),
             );
           } else {
-            toast.error(res.errorMessage || "Failed to move items.");
+            toast.error(res.errorMessage || t("Failed to move items."));
             loadFolders();
           }
         } catch (err) {
           toast.error(
-            `Failed to move items: ${err instanceof Error ? err.message : String(err)}`,
+            t("Failed to move items: {error}", {
+              error: err instanceof Error ? err.message : String(err),
+            }),
           );
           loadFolders();
         }
       },
-      [resolveItems, bumpFolderCollage, folders, foldersApi, loadFolders],
+      [resolveItems, bumpFolderCollage, folders, foldersApi, loadFolders, t],
     );
 
     // Remove media from the folder currently being viewed.
@@ -2285,17 +2336,19 @@ export const GalleryModal = React.memo(
             mediaFileTokens: itemIds,
           });
           if (!res.success) {
-            toast.error(res.errorMessage || "Failed to remove from folder.");
+            toast.error(res.errorMessage || t("Failed to remove from folder."));
             loadFolders();
           }
         } catch (err) {
           toast.error(
-            `Failed to remove from folder: ${err instanceof Error ? err.message : String(err)}`,
+            t("Failed to remove from folder: {error}", {
+              error: err instanceof Error ? err.message : String(err),
+            }),
           );
           loadFolders();
         }
       },
-      [resolveItems, foldersApi, loadFolders],
+      [resolveItems, foldersApi, loadFolders, t],
     );
 
     // Single entry point for drops + add-to-folder: prompt Move/Add when the
@@ -2309,6 +2362,7 @@ export const GalleryModal = React.memo(
             count: itemIds.length,
             targetFolderName: folders.find((f) => f.id === targetFolderId)
               ?.name,
+            t,
             onMove: () => handleMoveMedia(itemIds, source, targetFolderId),
             onAdd: () => handleAddToFolder(itemIds, targetFolderId),
           });
@@ -2316,7 +2370,7 @@ export const GalleryModal = React.memo(
           handleAddToFolder(itemIds, targetFolderId);
         }
       },
-      [folders, handleMoveMedia, handleAddToFolder],
+      [folders, handleMoveMedia, handleAddToFolder, t],
     );
 
     // Bulk "Add to folder" popover
@@ -2602,19 +2656,19 @@ export const GalleryModal = React.memo(
                 <div className="flex items-center gap-3 flex-wrap gap-y-1">
                   {(mode === "view" || mode === "select") && (
                     <div className="flex items-center gap-0.5 rounded-[3px] bg-ui-controls/40 p-0.5 relative z-[51]">
-                      {(["unsorted", "folders"] as const).map((t) => (
+                      {(["unsorted", "folders"] as const).map((tab) => (
                         <button
-                          key={t}
+                          key={tab}
                           type="button"
-                          onClick={() => switchGalleryTab(t)}
+                          onClick={() => switchGalleryTab(tab)}
                           className={twMerge(
                             "rounded-[3px] px-3 py-1 text-sm font-medium transition-colors",
-                            galleryTab === t
+                            galleryTab === tab
                               ? "bg-ui-controls text-base-fg"
                               : "text-base-fg/60 hover:text-base-fg",
                           )}
                         >
-                          {t === "unsorted" ? "All Assets" : "Folders"}
+                          {tab === "unsorted" ? t("All Assets") : t("Folders")}
                         </button>
                       ))}
                     </div>
@@ -2628,7 +2682,7 @@ export const GalleryModal = React.memo(
                         className="flex items-center gap-2 rounded-[3px] bg-ui-controls/60 px-3 py-1.5 text-sm font-medium text-base-fg hover:bg-ui-controls/90 transition-colors relative z-[51]"
                       >
                         <FolderPlusIcon className="text-xs" />
-                        New folder
+                        {t("New folder")}
                       </button>
                     )}
                   {activeTag ? (
@@ -2639,7 +2693,7 @@ export const GalleryModal = React.memo(
                         onClick={handleOpenTagBrowser}
                         className="text-base-fg/50 hover:text-base-fg text-sm transition-colors"
                       >
-                        Tags
+                        {t("Tags")}
                       </button>
                       <span className="text-base-fg/30">/</span>
                       <TagIcon className="text-sm text-violet-400" />
@@ -2647,13 +2701,14 @@ export const GalleryModal = React.memo(
                         {activeTag.tag_value}
                       </h2>
                       <span className="text-base-fg/40 text-sm">
-                        {activeTag.use_count} file
-                        {activeTag.use_count === 1 ? "" : "s"}
+                        {activeTag.use_count === 1
+                          ? t("1 file")
+                          : t("{count} files", { count: activeTag.use_count })}
                       </span>
                       <button
                         type="button"
                         onClick={handleCloseTagView}
-                        aria-label="Close tag view"
+                        aria-label={t("Close tag view")}
                         className="flex h-7 w-7 items-center justify-center rounded-[3px] hover:bg-ui-controls/60 text-base-fg/60 hover:text-base-fg transition-colors"
                       >
                         <XIcon className="text-sm" />
@@ -2663,11 +2718,11 @@ export const GalleryModal = React.memo(
                     /* ── All-tags browser header ── */
                     <div className="flex items-center gap-2 relative z-[51]">
                       <TagIcon className="text-sm text-violet-400" />
-                      <h2 className="text-lg font-semibold">Tags</h2>
+                      <h2 className="text-lg font-semibold">{t("Tags")}</h2>
                       <button
                         type="button"
                         onClick={handleCloseTagView}
-                        aria-label="Close tags"
+                        aria-label={t("Close tags")}
                         className="flex h-7 w-7 items-center justify-center rounded-[3px] hover:bg-ui-controls/60 text-base-fg/60 hover:text-base-fg transition-colors"
                       >
                         <XIcon className="text-sm" />
@@ -2681,7 +2736,7 @@ export const GalleryModal = React.memo(
                         onClick={handleBackToLibrary}
                         className="text-base-fg/50 hover:text-base-fg text-sm transition-colors"
                       >
-                        Folders
+                        {t("Folders")}
                       </button>
                       {/* Ancestor crumbs (everything above the active folder) */}
                       {folderPath.slice(0, -1).map((crumb) => (
@@ -2743,6 +2798,7 @@ export const GalleryModal = React.memo(
                               onClick={() => setFolderMenuOpen(false)}
                             />
                             <FolderContextMenuItems
+                              t={t}
                               className="absolute left-0 top-full mt-1"
                               folderId={activeFolderId!}
                               hasStar={activeFolder?.hasStar}
@@ -2767,27 +2823,27 @@ export const GalleryModal = React.memo(
                         <h2 className="text-xl font-semibold">
                           {activeFilter === "video"
                             ? maxSelections === 1
-                              ? "Select Video"
-                              : "Select Videos"
+                              ? t("Select Video")
+                              : t("Select Videos")
                             : activeFilter === "audio"
-                              ? "Select Audio"
+                              ? t("Select Audio")
                               : activeFilter === "mesh"
                                 ? maxSelections === 1
-                                  ? "Select 3D Object"
-                                  : "Select 3D Objects"
+                                  ? t("Select 3D Object")
+                                  : t("Select 3D Objects")
                                 : activeFilter === "splat"
                                   ? maxSelections === 1
-                                    ? "Select 3D World"
-                                    : "Select 3D Worlds"
+                                    ? t("Select 3D World")
+                                    : t("Select 3D Worlds")
                                   : activeFilter === "uploaded"
                                     ? maxSelections === 1
-                                      ? "Select Upload"
-                                      : "Select Uploads"
+                                      ? t("Select Upload")
+                                      : t("Select Uploads")
                                     : activeFilter === "all"
-                                      ? "Select Media"
+                                      ? t("Select Media")
                                       : maxSelections === 1
-                                        ? "Select Image"
-                                        : "Select Images"}
+                                        ? t("Select Image")
+                                        : t("Select Images")}
                         </h2>
                       )}
                       {mode === "view" && galleryTab === "unsorted" && (
@@ -2799,7 +2855,7 @@ export const GalleryModal = React.memo(
                               (galleryReopenAfterDragSignal.value =
                                 e.target.checked)
                             }
-                            label="Reopen after adding"
+                            label={t("Reopen after adding")}
                           />
                         </div>
                       )}
@@ -2814,7 +2870,7 @@ export const GalleryModal = React.memo(
                           id="gallery-show-uploads"
                           checked={showUploads}
                           onChange={(e) => setShowUploads(e.target.checked)}
-                          label="Show uploads"
+                          label={t("Show uploads")}
                         />
                       </div>
                     )}
@@ -2823,7 +2879,7 @@ export const GalleryModal = React.memo(
                   {/* Refresh button */}
                   <Tooltip
                     position="top"
-                    content="Refresh list"
+                    content={t("Refresh list")}
                     closeOnClick={true}
                   >
                     <Button
@@ -2831,7 +2887,7 @@ export const GalleryModal = React.memo(
                       onClick={refreshGallery}
                       className="relative z-[51] h-9 w-9 p-2.5"
                       disabled={loading}
-                      aria-label="Refresh list"
+                      aria-label={t("Refresh list")}
                     >
                       <RefreshCwIcon
                         className={`text-lg text-base-fg ${loading ? "animate-spin" : ""}`}
@@ -2841,7 +2897,7 @@ export const GalleryModal = React.memo(
                   {/* Image fit toggle button */}
                   <Tooltip
                     position="top"
-                    content="Toggle image fit"
+                    content={t("Toggle image fit")}
                     closeOnClick={true}
                   >
                     <Button
@@ -2874,9 +2930,9 @@ export const GalleryModal = React.memo(
                       showTooltip={false}
                       className="w-full"
                       showProgressBar={false}
-                      tooltipContent={`${
-                        maxColumns - (sliderValue - minColumns)
-                      } columns`}
+                      tooltipContent={t("{count} columns", {
+                        count: maxColumns - (sliderValue - minColumns),
+                      })}
                     />
                   </div>
                   {mode === "view" && <Modal.ExpandButton />}
@@ -2933,7 +2989,7 @@ export const GalleryModal = React.memo(
                               icon={f.icon}
                               className="text-xs w-4"
                             />
-                            <span>{f.label}</span>
+                            <span>{t(f.label)}</span>
                           </div>
                         </button>
                       );
@@ -2942,13 +2998,13 @@ export const GalleryModal = React.memo(
                   {/* Folders header — pinned alongside the filters */}
                   <div className="flex items-center justify-between px-3 pt-2 pb-1 flex-shrink-0">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-base-fg/40">
-                      Folders
+                      {t("Folders")}
                     </span>
                     {mode === "view" && (
                       <button
                         type="button"
                         onClick={() => handleOpenNewFolderModal(null)}
-                        aria-label="New folder"
+                        aria-label={t("New folder")}
                         className="flex h-5 w-5 items-center justify-center rounded-[3px] text-base-fg/50 hover:bg-ui-controls/60 hover:text-base-fg transition-colors"
                       >
                         <PlusIcon className="text-[10px]" />
@@ -2959,7 +3015,7 @@ export const GalleryModal = React.memo(
                   <div className="flex flex-1 min-h-0 flex-col overflow-y-auto px-1.5 pb-2">
                     {rootFolders.length === 0 ? (
                       <div className="px-2.5 py-1.5 text-xs text-base-fg/30 italic">
-                        No folders yet
+                        {t("No folders yet")}
                       </div>
                     ) : (
                       rootFolders.map((folder) => (
@@ -3014,7 +3070,7 @@ export const GalleryModal = React.memo(
                       <>
                         <div className="flex items-center justify-between px-1.5 pt-3 pb-1 flex-shrink-0">
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-base-fg/40">
-                            Tags
+                            {t("Tags")}
                           </span>
                         </div>
                         {sidebarTags.map((tag) => (
@@ -3049,7 +3105,7 @@ export const GalleryModal = React.memo(
                           )}
                         >
                           <EllipsisIcon className="text-xs w-4" />
-                          <span>All tags</span>
+                          <span>{t("All tags")}</span>
                           <span className="ml-auto text-[10px] text-base-fg/40">
                             {sortedTags.length}
                           </span>
@@ -3174,17 +3230,17 @@ export const GalleryModal = React.memo(
                         <TagIcon className="text-violet-400 text-2xl" />
                       </div>
                       <div className="text-base-fg font-semibold">
-                        No tags yet
+                          {t("No tags yet")}
                       </div>
                       <div className="text-base-fg/40 text-sm text-center max-w-[16rem]">
-                        Open any item and add tags in its details panel —
-                        they'll show up here.
+                        {t("Open any item and add tags in its details panel — they'll show up here.")}
                       </div>
                     </div>
                   ) : (
                     <TagCloudView
                       tags={sortedTags}
                       onOpen={handleOpenTagFromSidebar}
+                      t={t}
                     />
                   )
                 ) : galleryTab === "folders" && !activeFolderId ? (
@@ -3195,10 +3251,10 @@ export const GalleryModal = React.memo(
                         <FolderIcon className="text-primary text-2xl" />
                       </div>
                       <div className="text-base-fg font-semibold">
-                        No folders yet
+                        {t("No folders yet")}
                       </div>
                       <div className="text-base-fg/40 text-sm text-center max-w-[16rem]">
-                        Create a folder to organize your media.
+                        {t("Create a folder to organize your media.")}
                       </div>
                       {mode === "view" && (
                         <Button
@@ -3207,7 +3263,7 @@ export const GalleryModal = React.memo(
                           onClick={() => handleOpenNewFolderModal(null)}
                           className="mt-1 px-3 py-1.5 text-sm"
                         >
-                          New folder
+                          {t("New folder")}
                         </Button>
                       )}
                     </div>
@@ -3227,12 +3283,12 @@ export const GalleryModal = React.memo(
                           <FolderIcon className="text-primary text-2xl" />
                         </div>
                         <div className="text-base-fg font-semibold">
-                          This folder is empty
+                          {t("This folder is empty")}
                         </div>
                         <div className="text-base-fg/40 text-sm text-center max-w-[16rem]">
                           {mode === "view"
-                            ? "Drag images here, generate new ones, or create a subfolder."
-                            : "There's nothing in this folder yet."}
+                            ? t("Drag images here, generate new ones, or create a subfolder.")
+                            : t("There's nothing in this folder yet.")}
                         </div>
                         {mode === "view" && (
                           <Button
@@ -3243,7 +3299,7 @@ export const GalleryModal = React.memo(
                             }
                             className="mt-1 px-3 py-1.5 text-sm"
                           >
-                            New folder
+                            {t("New folder")}
                           </Button>
                         )}
                       </div>
@@ -3354,7 +3410,7 @@ export const GalleryModal = React.memo(
                                 setUsernameRetryCount((c) => c + 1);
                               }}
                             >
-                              Retry
+                            {t("Retry")}
                             </button>
                           )}
                         </div>
@@ -3363,7 +3419,7 @@ export const GalleryModal = React.memo(
                       <div className="flex h-full items-center justify-center">
                         <div className="flex flex-col items-center gap-3 text-sm max-w-xs text-center">
                           <div className="text-base-fg/60">
-                            Failed to load gallery.
+                            {t("Failed to load gallery.")}
                           </div>
                           <div className="text-xs text-base-fg/40 font-mono break-all">
                             {itemsLoadError}
@@ -3375,13 +3431,13 @@ export const GalleryModal = React.memo(
                                 navigator.clipboard?.writeText(itemsLoadError!)
                               }
                             >
-                              Copy error
+                              {t("Copy error")}
                             </button>
                             <button
                               className="text-xs text-blue-400 hover:text-blue-300 underline"
                               onClick={() => refreshGallery()}
                             >
-                              Retry
+                              {t("Retry")}
                             </button>
                           </div>
                         </div>
@@ -3394,7 +3450,7 @@ export const GalleryModal = React.memo(
                       currentSubfolders.length === 0 ? (
                       <div className="flex h-full items-center justify-center">
                         <div className="text-base-fg/40 text-sm">
-                          No items yet
+                            {t("No items yet")}
                         </div>
                       </div>
                     ) : (
@@ -3478,7 +3534,7 @@ export const GalleryModal = React.memo(
                         )}
                         {!hasMore && allItems.length > 0 && (
                           <div className="flex justify-center py-4 text-base-fg/40 text-xs">
-                            No more items
+                            {t("No more items")}
                           </div>
                         )}
                       </div>
@@ -3491,15 +3547,16 @@ export const GalleryModal = React.memo(
             {/* ── New Folder dialog ── */}
             <FolderNameDialog
               isOpen={newFolderModalOpen}
-              title="New folder"
-              subtitle={`in ${
-                newFolderParentId
+              title={t("New folder")}
+              subtitle={t("in {folder}", {
+                folder: newFolderParentId
                   ? (folders.find((f) => f.id === newFolderParentId)?.name ??
-                    "My Library")
-                  : "My Library"
-              }`}
+                    t("My Library"))
+                  : t("My Library"),
+              })}
               initialValue="New Folder"
-              confirmLabel="Create"
+              initialValueTranslationKey="New Folder"
+              confirmLabel={t("Create")}
               onConfirm={handleCreateFolder}
               onClose={() => {
                 setNewFolderModalOpen(false);
@@ -3510,11 +3567,11 @@ export const GalleryModal = React.memo(
             {/* ── Rename Folder dialog (sidebar context menu) ── */}
             <FolderNameDialog
               isOpen={!!(renameViaModal && renamingFolderId)}
-              title="Rename folder"
+              title={t("Rename folder")}
               initialValue={
                 folders.find((f) => f.id === renamingFolderId)?.name ?? ""
               }
-              confirmLabel="Rename"
+              confirmLabel={t("Rename")}
               onConfirm={handleConfirmRename}
               onClose={() => {
                 setRenamingFolderId(null);
@@ -3555,7 +3612,7 @@ export const GalleryModal = React.memo(
                     </div>
                   )}
                   <span className="ms-2.5 text-sm font-medium text-base-fg/80">
-                    {bulkSelectedIds.size} selected
+                    {t("{count} selected", { count: bulkSelectedIds.size })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -3567,7 +3624,7 @@ export const GalleryModal = React.memo(
                       className="px-3 bg-ui-controls/60 hover:bg-ui-controls/90"
                       icon={FolderPlusIcon}
                     >
-                      Add to folder
+                      {t("Add to folder")}
                     </Button>
                     {bulkFolderPopoverOpen && (
                       <>
@@ -3579,11 +3636,11 @@ export const GalleryModal = React.memo(
                         <div className="absolute bottom-full mb-2 right-0 w-56 rounded-[3px] border border-ui-panel-border bg-ui-panel p-2 shadow-xl z-[60]">
                           {/* Folders */}
                           <div className="text-[11px] font-semibold uppercase tracking-wider text-base-fg/40 px-2 py-1">
-                            Folders
+                            {t("Folders")}
                           </div>
                           {folders.length === 0 ? (
                             <div className="px-2 py-1.5 text-xs text-base-fg/30 italic">
-                              No folders yet
+                              {t("No folders yet")}
                             </div>
                           ) : (
                             // Same ordering as the folder chips: starred
@@ -3615,7 +3672,7 @@ export const GalleryModal = React.memo(
                             }}
                           >
                             <PlusIcon className="text-xs w-4" />
-                            <span>Create new folder</span>
+                            <span>{t("Create new folder")}</span>
                           </button>
                         </div>
                       </>
@@ -3628,13 +3685,13 @@ export const GalleryModal = React.memo(
                       className="px-3"
                       icon={Trash2Icon}
                     >
-                      Delete
+                      {t("Delete")}
                     </Button>
                   )}
                   <button
                     onClick={clearBulkSelection}
                     className="flex h-8 w-8 items-center justify-center rounded-[3px] bg-ui-controls/60 hover:bg-ui-controls/90 text-base-fg transition-colors"
-                    aria-label="Clear selection"
+                    aria-label={t("Clear selection")}
                   >
                     <XIcon className="text-base" />
                   </button>
@@ -3646,7 +3703,10 @@ export const GalleryModal = React.memo(
               <div className="flex items-center justify-between border-t border-ui-panel-border bg-ui-panel p-4">
                 <div className="flex items-center gap-3">
                   <div className="text-sm font-semibold text-base-fg/80">
-                    {selectedItemIds.length}/{maxSelections} selected
+                    {t("{selected}/{maximum} selected", {
+                      selected: selectedItemIds.length,
+                      maximum: maxSelections,
+                    })}
                   </div>
                   {selectedItemIds.length > 0 && (
                     <span className="text-base-fg/10">|</span>
@@ -3656,7 +3716,7 @@ export const GalleryModal = React.memo(
                       onClick={handleDeselectAll}
                       className="text-sm text-base-fg/60 hover:text-base-fg"
                     >
-                      Deselect All
+                      {t("Deselect All")}
                     </button>
                   )}
                 </div>
@@ -3665,7 +3725,7 @@ export const GalleryModal = React.memo(
                   disabled={selectedItemIds.length === 0 || useSelectedLoading}
                   loading={useSelectedLoading}
                 >
-                  Use selected
+                  {t("Use selected")}
                 </Button>
               </div>
             )}
@@ -3686,9 +3746,13 @@ export const GalleryModal = React.memo(
             batchImageToken={
               (lightboxImageSignal.value as any)?.batchImageToken
             }
-            imageAlt={lightboxImageSignal.value?.label || ""}
+            imageAlt={lightboxImageSignal.value?.labelTranslationKey
+              ? t(lightboxImageSignal.value.labelTranslationKey)
+              : lightboxImageSignal.value?.label || ""}
             onImageError={() => imageUrl && handleImageError(imageUrl)}
-            title={lightboxImageSignal.value?.label}
+            title={lightboxImageSignal.value?.labelTranslationKey
+              ? t(lightboxImageSignal.value.labelTranslationKey)
+              : lightboxImageSignal.value?.label}
             createdAt={lightboxImageSignal.value?.createdAt}
             downloadUrl={imageUrl}
             mediaId={lightboxImageSignal.value?.id}
@@ -3724,6 +3788,7 @@ export const GalleryModal = React.memo(
                 }}
               />
               <FolderContextMenuItems
+                t={t}
                 className="fixed z-[9999]"
                 style={{ left: contextMenu.x, top: contextMenu.y }}
                 folderId={contextMenu.folderId}

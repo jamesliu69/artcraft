@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Tooltip } from "@storyteller/ui-tooltip";
 import { ArrowLeftRightIcon, PlusIcon } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "@storyteller/common";
 import { DeckAddAction, DeckItem } from "./deckTypes";
 import {
   DeckAddMenu,
@@ -40,6 +41,7 @@ export const KeyframeCards = ({
   onSwap,
   className,
 }: KeyframeCardsProps) => {
+  const { t } = useTranslation();
   const [previewItem, setPreviewItem] = useState<DeckItem | null>(null);
 
   return (
@@ -53,7 +55,7 @@ export const KeyframeCards = ({
 
       <DeckSlotCard
         item={firstFrame}
-        label="First frame"
+        label={t("First frame")}
         tiltClass={showLastFrame ? "-rotate-6" : ""}
         addActions={onFirstAddActions}
         onRemove={onRemoveFirst}
@@ -67,7 +69,7 @@ export const KeyframeCards = ({
               <button
                 type="button"
                 onClick={onSwap}
-                title="Swap frames"
+                title={t("Swap frames")}
                 className="flex h-5 w-5 items-center justify-center rounded-full border border-white/20 bg-black/60 text-[10px] text-white shadow backdrop-blur-md transition-all hover:scale-110 hover:bg-black/80"
               >
                 <ArrowLeftRightIcon />
@@ -81,7 +83,7 @@ export const KeyframeCards = ({
 
           <DeckSlotCard
             item={lastFrame}
-            label="Last frame"
+            label={t("Last frame")}
             tiltClass="rotate-6"
             addActions={onLastAddActions}
             onRemove={onRemoveLast}

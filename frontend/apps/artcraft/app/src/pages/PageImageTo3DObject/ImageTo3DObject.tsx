@@ -1,10 +1,12 @@
 import { ImageTo3DExperience } from "../../components/experiences/ImageTo3DExperience";
+import { useTranslation } from "@storyteller/common";
 
 export const ImageTo3DObject = () => {
+  const { t } = useTranslation();
   return (
     <ImageTo3DExperience
-      title="Generate 3D Object"
-      subtitle="Transform your image into a 3D object with textures."
+      title={t("Generate 3D Object")}
+      subtitle={t("Transform your image into a 3D object with textures.")}
       variant="object"
     />
   );

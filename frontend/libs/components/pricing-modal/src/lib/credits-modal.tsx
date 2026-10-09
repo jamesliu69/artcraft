@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { Modal } from "@storyteller/ui-modal";
 import { ArrowRightIcon, CoinsIcon, LoaderCircleIcon } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "@storyteller/common";
 
 interface CreditPack {
   id: string;
@@ -39,6 +40,7 @@ export function CreditsModal({
   onClose,
   onPurchase,
 }: CreditsModalProps) {
+  const { t } = useTranslation();
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
 
   const handlePurchase = async (pack: CreditPack) => {
@@ -74,10 +76,10 @@ export function CreditsModal({
       <div className="relative overflow-hidden">
         <div className="relative px-8 pt-10 pb-8 sm:px-10 sm:pt-11 sm:pb-9">
           <h2 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-[34px] sm:leading-[1.1]">
-            Buy <span className="text-primary">credits</span>
+            {t("Buy")} <span className="text-primary">{t("credits")}</span>
           </h2>
           <p className="mt-3 text-[15px] leading-relaxed text-white/55">
-            One-time credit packs. No subscription required.
+            {t("One-time credit packs. No subscription required.")}
           </p>
 
           <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -99,7 +101,7 @@ export function CreditsModal({
                 >
                   {pack.badge && (
                     <span className="absolute -top-2.5 right-3 bg-white px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-black">
-                      {pack.badge}
+                      {t(pack.badge)}
                     </span>
                   )}
 
@@ -116,11 +118,11 @@ export function CreditsModal({
                           <>
                             {pack.base.toLocaleString()} +{" "}
                             <span className="font-semibold text-white">
-                              {pack.bonus.toLocaleString()} bonus
+                              {pack.bonus.toLocaleString()} {t("bonus")}
                             </span>
                           </>
                         ) : (
-                          "credits"
+                          t("credits")
                         )}
                       </div>
                     </div>
@@ -135,7 +137,7 @@ export function CreditsModal({
                         <LoaderCircleIcon className="animate-spin" />
                       ) : (
                         <>
-                          Buy
+                          {t("Buy")}
                           <ArrowRightIcon className="text-xs transition-transform group-hover:translate-x-0.5" />
                         </>
                       )}
@@ -147,7 +149,7 @@ export function CreditsModal({
           </div>
 
           <p className="mt-6 text-center text-xs text-white/35">
-            Secure checkout via Stripe.
+            {t("Secure checkout via Stripe.")}
           </p>
         </div>
       </div>

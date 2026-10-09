@@ -10,8 +10,9 @@
 // siblings, never wrapped by EngineProvider, so they have no
 // dependency on the 3D engine being present.
 
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useTranslation } from "@storyteller/common";
 
 import { TopBar } from "~/components";
 import { ErrorDialog } from "~/components";
@@ -112,6 +113,9 @@ interface Props {
 
 export const MainApp = ({ sceneToken }: Props) => {
   useSignals();
+  const { t } = useTranslation();
+  const translateRef = useRef(t);
+  translateRef.current = t;
 
   // Background plumbing — should keep running regardless of which tab
   // is active.
@@ -140,13 +144,13 @@ export const MainApp = ({ sceneToken }: Props) => {
 
   useFlashFileDownloadErrorEvent(async (event) => {
     console.log("Flash file download error event received:", event);
-    toast.error(event.message || "File download failed");
+    toast.error(event.message || translateRef.current("File download failed"));
   });
 
   useMediaFileDeletedEvent(async (event) => {
     console.log("Media file deleted event received:", event);
     await SoundManager.playFileDeleted();
-    toast.error("File deleted.");
+    toast.error(translateRef.current("File deleted."));
   });
 
   // Session probe (runs once per shell mount).
@@ -198,7 +202,7 @@ export const MainApp = ({ sceneToken }: Props) => {
             role="status"
             className="flex h-[calc(100vh-56px)] items-center justify-center text-base-fg/60"
           >
-            Loading…
+            {t("Loading…")}
           </div>
         }
       >

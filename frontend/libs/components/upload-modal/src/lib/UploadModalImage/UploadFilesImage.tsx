@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import { Button } from "@storyteller/ui-button";
 import { FileUploader } from "@storyteller/ui-file-uploader";
@@ -31,6 +32,7 @@ export const UploadFilesImage = ({
   onClose,
   onUploadProgress,
 }: Props) => {
+  const { t } = useTranslation();
   const seedFiles = initialFiles ?? [];
 
   const [fileEntries, setFileEntries] = useState<FileEntry[]>(
@@ -197,7 +199,7 @@ export const UploadFilesImage = ({
       />
 
       {selectionError && (
-        <h6 className="z-10 text-red">{selectionError}</h6>
+        <h6 className="z-10 text-red">{t(selectionError)}</h6>
       )}
 
       {fileEntries.length > 0 && (
@@ -224,7 +226,7 @@ export const UploadFilesImage = ({
                           e.stopPropagation();
                           removeFile(i);
                         }}
-                        title="Remove"
+                        title={t("Remove")}
                       >
                         <XIcon />
                       </button>
@@ -250,7 +252,7 @@ export const UploadFilesImage = ({
                             e.stopPropagation();
                             retrySingleFile(i);
                           }}
-                          title="Retry"
+                          title={t("Retry")}
                         >
                           <RotateCwIcon />
                         </button>
@@ -275,7 +277,7 @@ export const UploadFilesImage = ({
                 {previewUrl && (
                   <img
                     key={previewIndex}
-                    alt="Preview"
+                    alt={t("Preview")}
                     className="m-auto max-h-full max-w-full object-contain"
                     src={previewUrl}
                   />
@@ -311,7 +313,7 @@ export const UploadFilesImage = ({
           previewUrl && (
             <div className="relative m-auto flex aspect-square w-full items-center justify-center overflow-hidden rounded-none border border-white/15 bg-black/30">
               <img
-                alt="Preview"
+                alt={t("Preview")}
                 className="m-auto max-h-full max-w-full object-contain"
                 src={previewUrl}
               />
@@ -322,23 +324,28 @@ export const UploadFilesImage = ({
 
       {(isUploading || anyUploading) && overallProgress && isMulti && (
         <p className="text-center text-sm opacity-60">
-          Uploading {overallProgress.current} / {overallProgress.total}...
+          {t("Uploading {current} / {total}...", {
+            current: overallProgress.current,
+            total: overallProgress.total,
+          })}
         </p>
       )}
 
       {!isUploading && !anyUploading && allDone && anyFailed && isMulti && (
         <p className="text-center text-sm text-red-400">
-          {fileEntries.filter((e) => e.status === "error").length} file(s) failed to upload.
+          {t("{count} file(s) failed to upload.", {
+            count: fileEntries.filter((e) => e.status === "error").length,
+          })}
         </p>
       )}
 
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onClose}>
-          Cancel
+          {t("Cancel")}
         </Button>
         {!isUploading && !anyUploading && allDone && anyFailed && isMulti && (
           <Button variant="secondary" onClick={retryAllFailed}>
-            Retry Failed
+            {t("Retry Failed")}
           </Button>
         )}
         {!hasUploadStarted && (
@@ -347,7 +354,7 @@ export const UploadFilesImage = ({
             onClick={handleSubmit}
             disabled={fileEntries.length === 0}
           >
-            Upload
+            {t("Upload")}
           </Button>
         )}
       </div>

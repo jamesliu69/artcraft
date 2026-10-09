@@ -13,6 +13,7 @@ vi.mock("@storyteller/icons", () => ({
 }));
 vi.mock("@storyteller/common", () => ({
   PLACEHOLDER_IMAGES: { DEFAULT: "placeholder.png" },
+  useTranslation: () => ({ t: (source: string) => source }),
 }));
 
 const THUMB =

@@ -5,7 +5,7 @@ import { Button, GenerateButton } from "@storyteller/ui-button";
 import { ButtonIconSelect } from "@storyteller/ui-button-icon-select";
 import { PopoverMenu, PopoverItem } from "@storyteller/ui-popover";
 import { Tooltip } from "@storyteller/ui-tooltip";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CommonAspectRatio, ImageModel } from "@storyteller/model-list";
 import { twMerge } from "tailwind-merge";
 import { ImagePromptRow, type UploadImageFn } from "./ImagePromptRow";
@@ -20,6 +20,7 @@ import {
 } from "./PromptFullscreenModal";
 import { PromptFullscreenButton } from "./PromptFullscreenButton";
 import { PromptClearAllButton } from "./PromptClearAllButton";
+import { useTranslation } from "@storyteller/common";
 
 export interface PromptBoxEditProps {
   onModeChange?: (mode: string) => void;
@@ -70,6 +71,7 @@ export const PromptBoxEdit = ({
   onRedo,
   credits,
 }: PromptBoxEditProps) => {
+  const { t } = useTranslation();
   const [prompt, setPrompt] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -100,30 +102,35 @@ export const PromptBoxEdit = ({
 
   const [showImagePrompts, setShowImagePrompts] = useState(false);
 
-  const [aspectRatioList, setAspectRatioList] = useState<PopoverItem[]>([
-    {
-      label: "Auto",
-      selected: aspectRatio === "auto",
-      icon: (
-        <MoveIcon  className="h-4 w-4" />
-      ),
-    },
-    {
-      label: "Wide",
-      selected: aspectRatio === "wide",
-      icon: <RectangleHorizontalIcon  className="h-4 w-4" />,
-    },
-    {
-      label: "Tall",
-      selected: aspectRatio === "tall",
-      icon: <RectangleVerticalIcon  className="h-4 w-4" />,
-    },
-    {
-      label: "Square",
-      selected: aspectRatio === "square",
-      icon: <SquareIcon  className="h-4 w-4" />,
-    },
-  ]);
+  const aspectRatioList = useMemo<PopoverItem[]>(
+    () => [
+      {
+        action: "auto",
+        label: t("Auto"),
+        selected: aspectRatio === "auto",
+        icon: <MoveIcon className="h-4 w-4" />,
+      },
+      {
+        action: "wide",
+        label: t("Wide"),
+        selected: aspectRatio === "wide",
+        icon: <RectangleHorizontalIcon className="h-4 w-4" />,
+      },
+      {
+        action: "tall",
+        label: t("Tall"),
+        selected: aspectRatio === "tall",
+        icon: <RectangleVerticalIcon className="h-4 w-4" />,
+      },
+      {
+        action: "square",
+        label: t("Square"),
+        selected: aspectRatio === "square",
+        icon: <SquareIcon className="h-4 w-4" />,
+      },
+    ],
+    [aspectRatio, t],
+  );
 
   const [resolutionList, setResolutionList] = useState<PopoverItem[]>([
     {
@@ -146,17 +153,6 @@ export const PromptBoxEdit = ({
   const generationCount = generationCountProp || 1;
 
   useEffect(() => {
-    setAspectRatioList((prev) =>
-      prev.map((item) => ({
-        ...item,
-        selected:
-          item.label.toLowerCase() === aspectRatio ||
-          (item.label === "Auto" && aspectRatio === "auto"),
-      })),
-    );
-  }, [aspectRatio]);
-
-  useEffect(() => {
     setResolutionList((prev) =>
       prev.map((item) => ({
         ...item,
@@ -166,9 +162,7 @@ export const PromptBoxEdit = ({
   }, [resolution]);
 
   const handleAspectRatioSelect = (selectedItem: PopoverItem) => {
-    const value =
-      selectedItem.label === "Auto" ? "auto" : selectedItem.label.toLowerCase();
-    setAspectRatio(value as any);
+    setAspectRatio(String(selectedItem.action ?? "auto") as any);
   };
 
   const handleResolutionSelect = (selectedItem: PopoverItem) => {
@@ -262,7 +256,9 @@ export const PromptBoxEdit = ({
     if (busy || isDisabled || !prompt.trim()) return;
     if (isFinite(maxLen) && prompt.length > maxLen) {
       toast.error(
-        `Prompt exceeds the ${maxLen} character limit for this model`,
+        t("Prompt exceeds the {count} character limit for this model", {
+          count: maxLen,
+        }),
       );
       return;
     }
@@ -290,12 +286,12 @@ export const PromptBoxEdit = ({
         {
           value: "marker",
           icon: PenIcon,
-          text: "Marker",
+          text: t("Marker"),
         },
         {
           value: "eraser",
           icon: EraserIcon,
-          text: "Eraser",
+          text: t("Eraser"),
         },
       ]
     : supportsMaskedInpainting
@@ -303,24 +299,24 @@ export const PromptBoxEdit = ({
           {
             value: "edit",
             icon: SquarePenIcon,
-            text: "Edit Region",
+            text: t("Edit Region"),
           },
           {
             value: "eraser",
             icon: EraserIcon,
-            text: "Eraser",
+            text: t("Eraser"),
           },
         ]
       : [
           {
             value: "edit",
             icon: SquarePenIcon,
-            text: "Edit Region",
+            text: t("Edit Region"),
           },
           {
             value: "select",
             icon: MousePointerIcon,
-            text: "Select",
+            text: t("Select"),
           },
         ];
 
@@ -343,7 +339,7 @@ export const PromptBoxEdit = ({
             />
             <div className="h-6 w-px bg-white/20" />
             <div className="flex items-center gap-1">
-              <Tooltip content="Undo" position="top" delay={200}>
+              <Tooltip content={t("Undo")} position="top" delay={200}>
                 <button
                   onClick={onUndo}
                   className="flex h-8 w-8 items-center justify-center rounded-[3px] text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
@@ -352,7 +348,7 @@ export const PromptBoxEdit = ({
                   <RotateCcwIcon  className="h-4 w-4" />
                 </button>
               </Tooltip>
-              <Tooltip content="Redo" position="top" delay={200}>
+              <Tooltip content={t("Redo")} position="top" delay={200}>
                 <button
                   onClick={onRedo}
                   className="flex h-8 w-8 items-center justify-center rounded-[3px] text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
@@ -393,7 +389,7 @@ export const PromptBoxEdit = ({
             <div className="flex gap-3">
               {selectedImageModel?.canUseImagePrompt && (
                 <Tooltip
-                  content="Add Image"
+                  content={t("Add Image")}
                   position="top"
                   closeOnClick={true}
                   className={twMerge(isImageRowVisible && "hidden opacity-0")}
@@ -427,7 +423,7 @@ export const PromptBoxEdit = ({
                 <textarea
                   ref={textareaRef}
                   rows={1}
-                  placeholder="Write what you want to change in your image and click generate..."
+                  placeholder={t("Write what you want to change in your image and click generate...")}
                   className={`promptbox-scrollbar text-md min-h-[2.5em] w-full resize-y overflow-y-auto bg-transparent pr-8 text-white placeholder-white placeholder:text-white/60 focus:outline-none ${isExpanded ? "max-h-[500px]" : "max-h-[5.5em]"}`}
                   value={prompt}
                   onChange={handleChange}
@@ -456,7 +452,7 @@ export const PromptBoxEdit = ({
                 {selectedImageModel?.canChangeAspectRatio &&
                   !selectedImageModel?.supportsNewAspectRatio() && (
                     <Tooltip
-                      content="Aspect Ratio"
+                      content={t("Aspect Ratio")}
                       position="top"
                       className="z-50"
                       closeOnClick={true}
@@ -465,7 +461,7 @@ export const PromptBoxEdit = ({
                         items={aspectRatioList}
                         onSelect={handleAspectRatioSelect}
                         mode="toggle"
-                        panelTitle="Aspect Ratio"
+                      panelTitle={t("Aspect Ratio")}
                         showIconsInList
                         triggerIcon={
                           <DynamicIcon
@@ -478,7 +474,7 @@ export const PromptBoxEdit = ({
                   )}
                 {selectedImageModel?.canChangeResolution && (
                   <Tooltip
-                    content="Resolution"
+                    content={t("Resolution")}
                     position="top"
                     className="z-50"
                     closeOnClick={true}
@@ -487,7 +483,7 @@ export const PromptBoxEdit = ({
                       items={resolutionList}
                       onSelect={handleResolutionSelect}
                       mode="toggle"
-                      panelTitle="Resolution"
+                      panelTitle={t("Resolution")}
                       showIconsInList
                       triggerIcon={
                         <MaximizeIcon  className="h-4 w-4" />
@@ -499,7 +495,7 @@ export const PromptBoxEdit = ({
               <div className="flex items-center gap-2">
                 {onFitPressed && (
                   <Tooltip
-                    content={"Fit canvas to screen"}
+                    content={t("Fit canvas to screen")}
                     position="top"
                     className="z-50"
                     delay={200}
@@ -510,7 +506,7 @@ export const PromptBoxEdit = ({
                       onClick={onFitPressed}
                     >
                       <FrameIcon  className="h-4 w-4" />
-                      Fit
+                      {t("Fit")}
                     </Button>
                   </Tooltip>
                 )}
@@ -534,14 +530,14 @@ export const PromptBoxEdit = ({
                   loading={isEnqueueing ?? internalEnqueueing}
                   credits={credits}
                 >
-                  Generate
+                  {t("Generate")}
                 </GenerateButton>
               </div>
             </div>
           </div>
           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2">
             <Tooltip
-              content={isExpanded ? "Collapse" : "Expand"}
+              content={isExpanded ? t("Collapse") : t("Expand")}
               position="top"
               className="-mb-2"
             >
@@ -589,7 +585,7 @@ export const PromptBoxEdit = ({
         }
       >
         <textarea
-          placeholder="Write what you want to change in your image and click generate..."
+          placeholder={t("Write what you want to change in your image and click generate...")}
           className="promptbox-scrollbar text-md h-full min-h-0 w-full resize-none overflow-y-auto rounded-[3px] bg-transparent text-base-fg placeholder-base-fg/60 focus:outline-none"
           value={prompt}
           onChange={handleChange}

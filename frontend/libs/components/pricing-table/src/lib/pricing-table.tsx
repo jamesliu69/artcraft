@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import { twMerge } from "tailwind-merge";
 import { SUBSCRIPTION_PLANS } from "@storyteller/subscription";
 import {
@@ -110,19 +111,22 @@ export const PricingSectionLabel = ({
   label,
   annotation,
   className,
-}: PricingSectionLabelProps) => (
-  <div
-    className={twMerge(
-      "pricing-hud flex items-center justify-between gap-4 border-b border-white/15 px-6 py-3 text-white/55 md:px-10",
-      className,
-    )}
-  >
-    <p>
-      <span className="text-white/40">{index} / </span>
-      {label}
-    </p>
-    {annotation && <p className="hidden text-white/40 sm:block">{annotation}</p>}
-  </div>
-);
+}: PricingSectionLabelProps) => {
+  const { t } = useTranslation();
+  return (
+    <div
+      className={twMerge(
+        "pricing-hud flex items-center justify-between gap-4 border-b border-white/15 px-6 py-3 text-white/55 md:px-10",
+        className,
+      )}
+    >
+      <p>
+        <span className="text-white/40">{index} / </span>
+        {t(label)}
+      </p>
+      {annotation && <p className="hidden text-white/40 sm:block">{t(annotation)}</p>}
+    </div>
+  );
+};
 
 export default PricingTable;

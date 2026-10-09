@@ -5,6 +5,7 @@ import { CopyPromptButton } from "./CopyPromptButton";
 import { derivePendingStatus } from "./pending-status";
 import { batchNoun } from "./types";
 import type { GenerationMediaClass } from "./types";
+import { useTranslation } from "@storyteller/common";
 
 export interface PendingRowProps {
   id: string;
@@ -31,9 +32,11 @@ export const PendingRow = memo(function PendingRow({
   recreateSlot,
   onCopyPromptResult,
 }: PendingRowProps) {
+  const { t } = useTranslation();
   const { progressPercent, timeLabel } = derivePendingStatus(
     progress,
     estimatedTimeLeftMs,
+    t,
   );
   const iconPath = getCreatorIconPathForModelId(modelId);
 
@@ -60,7 +63,7 @@ export const PendingRow = memo(function PendingRow({
             // A just-enqueued job's prompt may not be resolved yet — show a
             // placeholder rather than an empty line with a stray copy button.
             <p className="min-w-0 flex-1 text-sm italic text-white/40">
-              Generating…
+              {t("Generating…")}
             </p>
           )}
           {prompt.trim() && (
@@ -78,7 +81,7 @@ export const PendingRow = memo(function PendingRow({
             <>
               <span className="text-white/25">·</span>
               <span className="shrink-0">
-                {batchCount} {batchNoun(mediaClass)}
+                {t("{count} {media}", { count: batchCount, media: batchNoun(mediaClass, t) })}
               </span>
             </>
           )}

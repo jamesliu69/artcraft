@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowDownToLineIcon, CheckIcon, LinkIcon, LoaderCircleIcon, RotateCwIcon, VideoIcon } from "lucide-react";
 import { DynamicIcon } from "@storyteller/icons";
+import { useTranslation } from "@storyteller/common";
 import { Tooltip } from "@storyteller/ui-tooltip";
 import { toast } from "@storyteller/ui-toaster";
 import {
@@ -57,6 +58,7 @@ export function DesktopGenerationGallery({
   selectionBarBottomOffset,
   ...feedProps
 }: DesktopGenerationGalleryProps) {
+  const { t } = useTranslation();
   const viewMode = useGalleryViewStore((s) => s.viewMode);
   const selectionActive = useGallerySelectionStore((s) => s.active);
   const selectedIds = useGallerySelectionStore((s) => s.ids);
@@ -70,11 +72,11 @@ export function DesktopGenerationGallery({
 
   const handleCopyResult = useCallback((success: boolean) => {
     if (success) {
-      toast.success("Prompt copied");
+      toast.success(t("Prompt copied"));
     } else {
-      toast.error("Unable to copy prompt");
+      toast.error(t("Unable to copy prompt"));
     }
-  }, []);
+  }, [t]);
 
   const selectionProps = {
     selectionMode: !!selectable && selectionActive,
@@ -86,6 +88,7 @@ export function DesktopGenerationGallery({
       newlyCompletedItems={feedProps.newlyCompletedItems}
       galleryItems={feedProps.galleryItems}
       bottomOffset={selectionBarBottomOffset}
+      t={t}
     />
   );
 
@@ -140,10 +143,12 @@ function SelectionDownloadBar({
   newlyCompletedItems,
   galleryItems,
   bottomOffset,
+  t,
 }: {
   newlyCompletedItems: GalleryItem[];
   galleryItems: GalleryItem[];
   bottomOffset?: number;
+  t: (source: string, params?: Record<string, string | number>) => string;
 }) {
   const ids = useGallerySelectionStore((s) => s.ids);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -163,12 +168,12 @@ function SelectionDownloadBar({
     if (isDownloading || selectedItems.length === 0) return;
     setIsDownloading(true);
     try {
-      const anySaved = await downloadMediaFilesToFolder(selectedItems);
+      const anySaved = await downloadMediaFilesToFolder(selectedItems, t);
       if (anySaved) useGallerySelectionStore.getState().setActive(false);
     } finally {
       setIsDownloading(false);
     }
-  }, [isDownloading, selectedItems]);
+  }, [isDownloading, selectedItems, t]);
 
   return (
     // Sit above the fixed promptbox whatever its measured height is.
@@ -186,7 +191,7 @@ function SelectionDownloadBar({
           icon={isDownloading ? LoaderCircleIcon : ArrowDownToLineIcon}
           className={`text-xs ${isDownloading ? "animate-spin" : ""}`}
         />
-        Download
+        {t("Download")}
       </button>
     </SelectionActionBar>
   );
@@ -208,6 +213,7 @@ function ItemActions({
   enableMakeVideo?: boolean;
   variant: "row" | "card";
 }) {
+  const { t } = useTranslation();
   const [isRecreating, setIsRecreating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -235,12 +241,12 @@ function ItemActions({
       if (!promptToken || !recreateMediaClass || isRecreating) return;
       setIsRecreating(true);
       try {
-        await applyRecreateFromPromptToken(promptToken, recreateMediaClass);
+      await applyRecreateFromPromptToken(promptToken, recreateMediaClass, t);
       } finally {
         setIsRecreating(false);
       }
     },
-    [promptToken, recreateMediaClass, isRecreating],
+    [promptToken, recreateMediaClass, isRecreating, t],
   );
 
   const handleMakeVideo = useCallback(
@@ -256,13 +262,13 @@ function ItemActions({
   const handleShare = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
-      const ok = await copyShareLink(item.id);
+      const ok = await copyShareLink(item.id, t);
       if (ok) {
         setShareCopied(true);
         setTimeout(() => setShareCopied(false), 1500);
       }
     },
-    [item.id],
+    [item.id, t],
   );
 
   const handleDownload = useCallback(
@@ -271,23 +277,23 @@ function ItemActions({
       if (!item.fullImage || isDownloading) return;
       setIsDownloading(true);
       try {
-        await downloadMediaFileToDisk(item.fullImage, item.mediaClass, item.modelId);
+        await downloadMediaFileToDisk(item.fullImage, item.mediaClass, item.modelId, t);
       } finally {
         setIsDownloading(false);
       }
     },
-    [item.fullImage, item.mediaClass, isDownloading],
+    [item.fullImage, item.mediaClass, item.modelId, isDownloading, t],
   );
 
   return (
     <>
       {canRecreate && (
-        <Tooltip content="Recreate" position="top">
+        <Tooltip content={t("Recreate")} position="top">
           <button
             type="button"
             onClick={handleRecreate}
             disabled={isRecreating}
-            aria-label="Recreate"
+            aria-label={t("Recreate")}
             className={buttonClass}
           >
             <DynamicIcon
@@ -298,22 +304,22 @@ function ItemActions({
         </Tooltip>
       )}
       {canMakeVideo && (
-        <Tooltip content="Make Video" position="top">
+        <Tooltip content={t("Make Video")} position="top">
           <button
             type="button"
             onClick={handleMakeVideo}
-            aria-label="Make Video"
+            aria-label={t("Make Video")}
             className={buttonClass}
           >
             <VideoIcon className="text-sm" />
           </button>
         </Tooltip>
       )}
-      <Tooltip content={shareCopied ? "Copied" : "Share"} position="top">
+      <Tooltip content={shareCopied ? t("Copied") : t("Share")} position="top">
         <button
           type="button"
           onClick={handleShare}
-          aria-label="Share"
+          aria-label={t("Share")}
           className={buttonClass}
         >
           <DynamicIcon
@@ -323,12 +329,12 @@ function ItemActions({
         </button>
       </Tooltip>
       {item.fullImage && (
-        <Tooltip content="Download" position="top">
+        <Tooltip content={t("Download")} position="top">
           <button
             type="button"
             onClick={handleDownload}
             disabled={isDownloading}
-            aria-label="Download"
+            aria-label={t("Download")}
             className={buttonClass}
           >
             <DynamicIcon

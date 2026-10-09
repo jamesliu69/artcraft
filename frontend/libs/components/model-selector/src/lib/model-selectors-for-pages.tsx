@@ -11,29 +11,34 @@ import {
 } from "@storyteller/model-list";
 import { ModelTag } from "@storyteller/model-list";
 import { useImageModels, useVideoModels } from "@storyteller/tauri-api";
+import { useTranslation } from "@storyteller/common";
 
 export type ModelList = Omit<PopoverItem, "selected">[];
 
 const withIcon = (creatorIcon: any, fallback: any) => creatorIcon || fallback;
 
 // Capability tag pills shown under video model rows.
-const videoCapabilityBadges = (model: Model) => {
+const videoCapabilityBadges = (model: Model, t: (source: string) => string) => {
   if (model.kind !== "video_model") return undefined;
   const video = model as VideoModel;
   const badges = [
-    ...(video.generateWithSound ? [{ label: "Audio Support" }] : []),
-    ...(video.endFrame ? [{ label: "Start/End" }] : []),
-    ...(video.supportsReferenceMode ? [{ label: "Reference" }] : []),
+    ...(video.generateWithSound ? [{ label: t("Audio Support") }] : []),
+    ...(video.endFrame ? [{ label: t("Start/End") }] : []),
+    ...(video.supportsReferenceMode ? [{ label: t("Reference") }] : []),
   ];
   return badges.length > 0 ? badges : undefined;
 };
 
-const buildItems = (models: Model[], fallbackIcon: any) =>
+const buildItems = (
+  models: Model[],
+  fallbackIcon: any,
+  t: (source: string) => string = (source) => source,
+) =>
   models.map((model: Model) => ({
     label: model.selectorName,
     icon: withIcon(getCreatorListIcon(model.creator), fallbackIcon),
     description: model.selectorDescription,
-    badges: videoCapabilityBadges(model),
+    badges: videoCapabilityBadges(model, t),
     modelConfig: model.toLegacyModelConfig(), // Access to full object.
     model: model,
   }));
@@ -96,12 +101,16 @@ export const buildAnglesPageList = (imageModels: ImageModel[]): ModelList =>
     imageIcon,
   );
 
-export const buildImageToVideoPageList = (videoModels: VideoModel[]): ModelList =>
+export const buildImageToVideoPageList = (
+  videoModels: VideoModel[],
+  t: (source: string) => string = (source) => source,
+): ModelList =>
   buildItems(
     // SwitchX is a VFX/background-change model with its own page; keep it
     // out of the general video selector.
     sortedBySelectorName(videoModels.filter((m) => m.id !== "switch_x")),
     filmIcon,
+    t,
   );
 
 // ---------------------------------------------------------------------------
@@ -150,6 +159,7 @@ export const useAnglesPageModelList = (): ModelList => {
 };
 
 export const useImageToVideoPageModelList = (): ModelList => {
+  const { t } = useTranslation();
   const videoModels = useVideoModels();
-  return useMemo(() => buildImageToVideoPageList(videoModels), [videoModels]);
+  return useMemo(() => buildImageToVideoPageList(videoModels, t), [videoModels, t]);
 };

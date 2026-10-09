@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import { toast } from "@storyteller/ui-toaster";
 import { UploadImageMedia, UploadVideoMedia } from "@storyteller/api";
 import {
@@ -15,6 +16,7 @@ import {
 import { CreateEmptyState } from "~/components/generation-feed/CreateEmptyState";
 
 export const PageBackgroundChange = () => {
+  const { t } = useTranslation();
   const subTab = useVFXStore((s) => s.subTab);
   const setSubTab = useVFXStore((s) => s.setSubTab);
   const history = useVFXStore((s) => s.history);
@@ -59,13 +61,13 @@ export const PageBackgroundChange = () => {
     if (!result.success) {
       const isExpected = result.error_code_str === VFX_NOT_AVAILABLE_ERROR;
       const message = isExpected
-        ? "Background change backend coming soon. Your inputs are saved."
-        : result.error_message || "Failed to submit background change job.";
+        ? t("Background change backend coming soon. Your inputs are saved.")
+        : result.error_message || t("Failed to submit background change job.");
       failResult(id, message);
       if (isExpected) toast(message);
       else toast.error(message);
     }
-  }, [source, reference, prompt, isSubmitting, startResult, failResult]);
+  }, [source, reference, prompt, isSubmitting, startResult, failResult, t]);
 
   const handleTryShowcase = useCallback(() => {
     const entry = VFX_SHOWCASE.find((e) => e.id === selectedShowcaseId);
@@ -93,8 +95,8 @@ export const PageBackgroundChange = () => {
           }
         : undefined,
     });
-    toast("Loaded showcase. Edit and Generate.");
-  }, [selectedShowcaseId, loadFromShowcase]);
+    toast(t("Loaded showcase. Edit and Generate."));
+  }, [selectedShowcaseId, loadFromShowcase, t]);
 
   return (
     <div className="relative flex h-[calc(100vh-56px)] w-full flex-col bg-ui-background">
@@ -113,8 +115,8 @@ export const PageBackgroundChange = () => {
           style={{ paddingBottom: Math.max(promptBoxHeight + 36, 240) }}
         >
           <CreateEmptyState
-            title="No background changes yet"
-            subtitle="Upload a source video and a reference image, then optionally add a prompt."
+            title={t("No background changes yet")}
+            subtitle={t("Upload a source video and a reference image, then optionally add a prompt.")}
           />
         </div>
       ) : (

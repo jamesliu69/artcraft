@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import { Button } from "@storyteller/ui-button";
 import { Input } from "@storyteller/ui-input";
 import { FileUploader } from "@storyteller/ui-file-uploader";
@@ -18,6 +19,7 @@ export const UploadFilesMedia = ({
   title,
   onUploadProgress,
 }: Props) => {
+  const { t } = useTranslation();
   const [uploadTitle, setUploadTitle] = useState<{
     value: string;
     error?: string;
@@ -59,14 +61,14 @@ export const UploadFilesMedia = ({
     <>
       <div className="mb-4 flex flex-col gap-4">
         <Input
-          placeholder="Enter the title here"
-          errorMessage={uploadTitle.error}
+          placeholder={t("Enter the title here")}
+          errorMessage={uploadTitle.error ? t(uploadTitle.error) : undefined}
           value={uploadTitle.value}
           onChange={(event) => setUploadTitle({ value: event.target.value })}
           className={uploadTitle.error ? "mb-3" : ""}
         />
         <FileUploader
-          title={title}
+          title={t(title)}
           fileTypes={fileTypes}
           file={assetFile.value}
           setFile={(file: File | null) => {
@@ -81,13 +83,13 @@ export const UploadFilesMedia = ({
           }}
         />
         {assetFile.error && (
-          <h6 className="z-10 text-red">{assetFile.error}</h6>
+          <h6 className="z-10 text-red">{t(assetFile.error)}</h6>
         )}
 
         <div className="relative m-auto aspect-square w-full overflow-hidden border border-white/15 bg-ui-controls">
           {!assetFile.value && (
             <h6 className="absolute left-0 top-1/2 -mt-5 w-full text-center">
-              File Preview
+              {t("File Preview")}
             </h6>
           )}
           {assetFile.value &&
@@ -100,11 +102,11 @@ export const UploadFilesMedia = ({
                 id="thumbnail-video"
                 src={assetFile.src}
               >
-                Your browser does not support the video tag.
+                {t("Your browser does not support the video tag.")}
               </video>
             ) : (
               <img
-                alt="file upload preview"
+                alt={t("File upload preview")}
                 className="m-auto max-h-full max-w-full"
                 src={assetFile.src}
               />
@@ -113,10 +115,10 @@ export const UploadFilesMedia = ({
 
         <div className="flex justify-end gap-4">
           <Button variant="primary" onClick={handleSubmit}>
-            Upload
+            {t("Upload")}
           </Button>
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t("Cancel")}
           </Button>
         </div>
       </div>

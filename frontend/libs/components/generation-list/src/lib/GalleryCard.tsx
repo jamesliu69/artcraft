@@ -15,6 +15,7 @@ import {
 import { WaveformAudioPlayer } from "@storyteller/ui-audio-player";
 import { GalleryThumbnail } from "./GalleryThumbnail";
 import { is3DMediaClass, type GalleryItem } from "./types";
+import { useTranslation } from "@storyteller/common";
 
 // ── Persistent aspect ratio cache ─────────────────────────────────────────
 
@@ -95,6 +96,7 @@ export const GalleryCard = memo(function GalleryCard({
   onToggleSelect,
   lastViewed = false,
 }: GalleryCardProps) {
+  const { t } = useTranslation();
   const isSquare = shape === "square";
   const cached = aspectRatioCache.get(item.id);
   const [ratio, setRatio] = useState<number | undefined>(cached);
@@ -110,12 +112,12 @@ export const GalleryCard = memo(function GalleryCard({
         ? MusicIcon
         : ImageIcon;
   const mediaLabel = isVideo
-    ? "Video"
+    ? t("Video")
     : is3D
       ? "3D"
       : isAudio
-        ? "Audio"
-        : "Image";
+        ? t("Audio")
+        : t("Image");
   const modelDisplayName = item.modelId
     ? getModelDisplayName(item.modelId)
     : null;
@@ -237,7 +239,7 @@ export const GalleryCard = memo(function GalleryCard({
       {lastViewed && (
         <div className="pointer-events-none absolute right-2 top-2 z-10 flex items-center gap-1 rounded-[3px] bg-black/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white/80">
           <EyeIcon />
-          Last viewed
+          {t("Last viewed")}
         </div>
       )}
 

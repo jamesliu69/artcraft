@@ -17,6 +17,7 @@ import { GalleryThumbnail } from "./GalleryThumbnail";
 import { CopyPromptButton } from "./CopyPromptButton";
 import { formatTimeAgo } from "./format-time-ago";
 import { is3DMediaClass, type GalleryItem } from "./types";
+import { useTranslation } from "@storyteller/common";
 
 export interface GalleryRowProps {
   item: GalleryItem;
@@ -52,6 +53,7 @@ export const GalleryRow = memo(function GalleryRow({
   onToggleSelect,
   lastViewed = false,
 }: GalleryRowProps) {
+  const { t } = useTranslation();
   const isVideo = item.mediaClass === "video";
   const is3D = is3DMediaClass(item.mediaClass);
   const isAudio = item.mediaClass === "audio";
@@ -63,12 +65,12 @@ export const GalleryRow = memo(function GalleryRow({
         ? MusicIcon
         : ImageIcon;
   const mediaLabel = isVideo
-    ? "Video"
+    ? t("Video")
     : is3D
       ? "3D"
       : isAudio
-        ? "Audio"
-        : "Image";
+        ? t("Audio")
+        : t("Image");
 
   const effectiveModelId = modelId ?? item.modelId;
   const modelDisplayName = effectiveModelId
@@ -96,7 +98,7 @@ export const GalleryRow = memo(function GalleryRow({
     [handleRowClick],
   );
 
-  const timeAgo = formatTimeAgo(item.createdAt);
+  const timeAgo = formatTimeAgo(item.createdAt, t);
 
   return (
     <div
@@ -142,7 +144,7 @@ export const GalleryRow = memo(function GalleryRow({
         {lastViewed && (
           <div className="pointer-events-none absolute left-1 top-1 z-10 flex items-center gap-1 rounded-full bg-black/70 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-white/80">
             <EyeIcon />
-            Last viewed
+            {t("Last viewed")}
           </div>
         )}
       </div>

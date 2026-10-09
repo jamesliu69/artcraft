@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import { LoadingDots } from "@storyteller/ui-loading";
 import { Modal } from "@storyteller/ui-modal";
 import { UploadAssetError } from "../UploadAssetError";
@@ -30,6 +31,7 @@ const imageFileTypes = Object.values(IMAGEPLANE_FILE_TYPE);
 
 export function UploadModalImage(props: Props) {
   const { isOpen, onClose, onSuccess, title, titleIcon, initialFiles } = props;
+  const { t } = useTranslation();
   const [uploaderState, setUploaderState] =
     useState<UploaderState>(initialUploaderState);
 
@@ -73,8 +75,11 @@ export function UploadModalImage(props: Props) {
             <LoadingDots className="mb-1 bg-transparent" />
             <div className="w-100 text-center opacity-50">
               {p && p.total > 1
-                ? `Uploading ${p.current} / ${p.total}...`
-                : "Uploading..."}
+                ? t("Uploading {current} / {total}...", {
+                    current: p.current,
+                    total: p.total,
+                  })
+                : t("Uploading...")}
             </div>
           </>
         );
@@ -113,7 +118,7 @@ export function UploadModalImage(props: Props) {
             onRetry={() => {
               resetModalState();
             }}
-            type={"Thumbnail"}
+            type={t("Thumbnail")}
             errorMessage={uploaderState.errorMessage}
           />
         );
@@ -126,7 +131,7 @@ export function UploadModalImage(props: Props) {
       isOpen={isOpen}
       onClose={onClose}
       titleIcon={titleIcon}
-      title={title}
+      title={t(title)}
       className="max-w-xl"
       showClose={true}
     >

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { EllipsisIcon, FolderIcon, StarIcon } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "@storyteller/common";
 import { GalleryFolder } from "./GalleryDraggableItem";
 
 interface GalleryFolderChipProps {
@@ -44,6 +45,7 @@ export const GalleryFolderChip: React.FC<GalleryFolderChipProps> = ({
   onOpen,
   onContextMenu,
 }) => {
+  const { t } = useTranslation();
   const { colorCode, hasStar, name } = folder;
   const coverUrl = folder.coverUrl;
   const collageUrls = folder.collageUrls ?? [];
@@ -152,7 +154,9 @@ export const GalleryFolderChip: React.FC<GalleryFolderChipProps> = ({
               hasArt ? "text-white/70" : "text-base-fg/40",
             )}
           >
-            {childCount} folder{childCount === 1 ? "" : "s"}
+            {childCount === 1
+              ? t("{count} folder", { count: childCount })
+              : t("{count} folders", { count: childCount })}
           </span>
         )}
       </div>
@@ -162,7 +166,7 @@ export const GalleryFolderChip: React.FC<GalleryFolderChipProps> = ({
         <span
           role="button"
           tabIndex={-1}
-          aria-label="Folder options"
+          aria-label={t("Folder options")}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();

@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { DynamicIcon } from "@storyteller/icons";
 import { Button } from "@storyteller/ui-button";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "@storyteller/common";
 
 interface UploadEntryCardProps {
   icon: LucideIcon;
@@ -44,6 +45,7 @@ export const UploadEntryCard = ({
   onTertiaryClick,
   disabled,
 }: UploadEntryCardProps) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragActive, setIsDragActive] = useState(false);
 
@@ -135,9 +137,9 @@ export const UploadEntryCard = ({
           <DynamicIcon icon={icon} className="text-xl text-white" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-base-fg">{title}</h3>
+          <h3 className="text-lg font-semibold text-base-fg">{t(title)}</h3>
           <p className="mx-auto mt-1 max-w-md text-sm text-base-fg/60">
-            {description}
+            {t(description)}
           </p>
         </div>
         <div className="mt-2 flex flex-wrap justify-center gap-2">
@@ -148,7 +150,7 @@ export const UploadEntryCard = ({
             className="px-3 py-2"
             disabled={disabled}
           >
-            {primaryLabel}
+            {t(primaryLabel)}
           </Button>
           {secondaryLabel && onSecondaryClick && (
             <Button
@@ -158,7 +160,7 @@ export const UploadEntryCard = ({
               className="px-3 py-2"
               disabled={disabled}
             >
-              {secondaryLabel}
+              {t(secondaryLabel)}
             </Button>
           )}
           {tertiaryLabel && onTertiaryClick && (
@@ -169,7 +171,7 @@ export const UploadEntryCard = ({
               className="px-3 py-2"
               disabled={disabled}
             >
-              {tertiaryLabel}
+              {t(tertiaryLabel)}
             </Button>
           )}
         </div>

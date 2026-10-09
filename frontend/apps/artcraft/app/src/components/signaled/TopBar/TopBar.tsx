@@ -2,6 +2,7 @@ import { CalculatorIcon, CheckIcon, ChevronRightIcon, CircleAlertIcon, CoinsIcon
 import { DynamicIcon } from "@storyteller/icons";
 import { signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
+import { useTranslation } from "@storyteller/common";
 import { useCreditsState, type CreditsIconStatus } from "@storyteller/credits";
 import { gtagEvent } from "@storyteller/google-analytics";
 import { ProviderBillingModal } from "@storyteller/provider-billing-modal";
@@ -41,7 +42,7 @@ import {
 } from "@storyteller/ui-generation-list";
 import { SettingsModal } from "@storyteller/ui-settings-modal";
 import { Tooltip } from "@storyteller/ui-tooltip";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { APP_DESCRIPTORS, goToApp } from "~/config/appMenu";
 import {
   applyMakeVideoFromImage,
@@ -116,6 +117,7 @@ const CreditsCoinWithStatus = ({
 }: {
   iconStatus: CreditsIconStatus;
 }) => {
+  const { t } = useTranslation();
   const showBadge = iconStatus !== "hidden";
 
   const badgeColorClass =
@@ -129,10 +131,10 @@ const CreditsCoinWithStatus = ({
 
   const tooltipMessage =
     iconStatus === "failed"
-      ? "Couldn't refresh your balance."
+      ? t("Couldn't refresh your balance.")
       : iconStatus === "recovered"
-        ? "Balance up to date."
-        : "Refreshing your balance — current amount may not be up to date.";
+        ? t("Balance up to date.")
+        : t("Refreshing your balance — current amount may not be up to date.");
 
   const showRetry = iconStatus === "slow" || iconStatus === "failed";
 
@@ -159,7 +161,7 @@ const CreditsCoinWithStatus = ({
               className="h-7 self-start px-2 text-xs"
               onClick={handleRetry}
             >
-              Retry
+              {t("Retry")}
             </Button>
           )}
         </div>
@@ -181,6 +183,16 @@ const CreditsCoinWithStatus = ({
 
 export const TopBar = ({ pageName }: Props) => {
   useSignals();
+  const { t } = useTranslation();
+  const translatedAppMenuTabs = useMemo(
+    () =>
+      appMenuTabs.map((item) => ({
+        ...item,
+        label: t(item.label),
+        description: item.description ? t(item.description) : undefined,
+      })),
+    [t],
+  );
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [settingsSection, setSettingsSection] =
@@ -267,7 +279,8 @@ export const TopBar = ({ pageName }: Props) => {
     );
   };
 
-  const downloadFile = downloadMediaFileToDisk;
+  const downloadFile = (url: string, mediaClass?: string, model?: string) =>
+    downloadMediaFileToDisk(url, mediaClass, model, t);
 
   const handleEditFromGallery = async (url: string, mediaId?: string) => {
     try {
@@ -389,7 +402,7 @@ export const TopBar = ({ pageName }: Props) => {
     }
   };
 
-  const pageCrumbs = getPageCrumbs();
+  const pageCrumbs = getPageCrumbs().map((crumb) => t(crumb));
 
   const { toggleModal: toggleSubscriptionModal } = usePricingModalStore();
   const { toggleModal: toggleCreditsModal } = useCreditsModalStore();
@@ -432,7 +445,7 @@ export const TopBar = ({ pageName }: Props) => {
       >
         <nav
           className="mx-auto grid h-[56px] w-screen grid-cols-3 items-center justify-between ps-3"
-          aria-label="navigation"
+          aria-label={t("Navigation")}
           data-tauri-drag-region
         >
           <div
@@ -451,7 +464,7 @@ export const TopBar = ({ pageName }: Props) => {
               />
             </div> */}
             <MenuIconSelector
-              menuItems={appMenuTabs}
+              menuItems={translatedAppMenuTabs}
               activeMenu={tabStore.activeTabId}
               disabled={disableTabSwitcher()}
               onMenuChange={(tabId) => {
@@ -553,7 +566,7 @@ export const TopBar = ({ pageName }: Props) => {
                   <div className="w-72 p-3 text-white">
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium text-white/70">
-                        Your credit balance
+                        {t("Your credit balance")}
                       </span>
                       <button
                         className="text-sm font-medium text-primary transition-colors hover:text-primary-300"
@@ -562,7 +575,7 @@ export const TopBar = ({ pageName }: Props) => {
                           toggleCreditsModal();
                         }}
                       >
-                        Buy credits
+                        {t("Buy credits")}
                       </button>
                     </div>
                     <div className="flex items-center gap-2 text-3xl font-semibold tracking-tight text-white">
@@ -578,7 +591,7 @@ export const TopBar = ({ pageName }: Props) => {
                       }}
                     >
                       <CalculatorIcon />
-                      Cost calculator
+                      {t("Cost calculator")}
                     </button>
 
                     <div className="mt-3 flex gap-2">
@@ -590,7 +603,7 @@ export const TopBar = ({ pageName }: Props) => {
                           handleOpenBillingSettings();
                         }}
                       >
-                        See details
+                        {t("See details")}
                       </Button>
                       <Button
                         variant="primary"
@@ -601,7 +614,7 @@ export const TopBar = ({ pageName }: Props) => {
                         }}
                         icon={GemIcon}
                       >
-                        Support
+                        {t("Support")}
                       </Button>
                     </div>
                   </div>
@@ -615,7 +628,7 @@ export const TopBar = ({ pageName }: Props) => {
                   onClick={toggleSubscriptionModal}
                   className="h-8 px-3"
                 >
-                  Upgrade
+                  {t("Upgrade")}
                 </Button>
               )}
 
@@ -624,20 +637,20 @@ export const TopBar = ({ pageName }: Props) => {
               <button
                 type="button"
                 onClick={handleOpenGalleryModal}
-                aria-label="My Library"
+                aria-label={t("My Library")}
                 className="flex h-8 items-center gap-1.5 rounded-[3px] border border-white/15 px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-white/80 transition-colors hover:border-white/30 hover:bg-white/10"
               >
                 <ImagesIcon className="text-[11px]" />
                 <span className="hidden whitespace-nowrap xl:block">
-                  My Library
+                  {t("My Library")}
                 </span>
               </button>
 
               <UploadImagesButton />
 
-              <Tooltip content="Settings" position="bottom" delay={300}>
+              <Tooltip content={t("Settings")} position="bottom" delay={300}>
                 <Button
-                  aria-label="Settings"
+                  aria-label={t("Settings")}
                   variant="secondary"
                   icon={SettingsIcon}
                   iconClassName="h-4 w-4 shrink-0"

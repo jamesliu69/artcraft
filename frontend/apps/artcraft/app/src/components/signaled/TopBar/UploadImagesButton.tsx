@@ -4,17 +4,19 @@ import { Tooltip } from "@storyteller/ui-tooltip";
 import { ImagesIcon, UploadIcon } from "lucide-react";
 import { UploadModalImage } from "@storyteller/ui-upload-modal";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "@storyteller/common";
 
 interface Props {
   className?: string;
 }
 
 export const UploadImagesButton = ({ className }: Props) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      <Tooltip content="Upload images" position="bottom" delay={300}>
+      <Tooltip content={t("Upload images")} position="bottom" delay={300}>
         <Button
           variant="secondary"
           icon={UploadIcon}
@@ -30,7 +32,7 @@ export const UploadImagesButton = ({ className }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         onSuccess={() => setIsOpen(false)}
-        title="Upload an Image"
+        title={t("Upload an Image")}
         titleIcon={ImagesIcon}
       />
     </>

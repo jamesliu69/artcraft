@@ -6,9 +6,11 @@ import { Menu, Transition } from "@headlessui/react";
 import { Gravatar } from "@storyteller/ui-gravatar";
 import { twMerge } from "tailwind-merge";
 import { authentication, logout } from "~/signals";
+import { useTranslation } from "@storyteller/common";
 
 export default function ProfileDropdown() {
   useSignals();
+  const { t } = useTranslation();
   const { userInfo } = authentication;
 
   if (!userInfo.value) {
@@ -23,7 +25,7 @@ export default function ProfileDropdown() {
 
   const options = [
     {
-      label: "Logout",
+      label: t("Logout"),
       icon: LogOutIcon,
       onClick: () => {
         logout();
@@ -70,7 +72,7 @@ export default function ProfileDropdown() {
                 rel="noreferrer"
               >
                 <UserIcon className="text-[11px] text-white/50" />
-                My Profile
+                {t("My Profile")}
               </a>
             )}
           </Menu.Item>

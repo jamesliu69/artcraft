@@ -9,6 +9,7 @@ import {
 } from "@storyteller/api";
 import { downloadFileFromUrl } from "@storyteller/tauri-api";
 import { toast } from "@storyteller/ui-toaster";
+import { useTranslation } from "@storyteller/common";
 import { v4 as uuidv4 } from "uuid";
 import { GalleryItem, GalleryModal } from "@storyteller/ui-gallery-modal";
 import { useCharactersStore } from "./promptStore";
@@ -52,6 +53,7 @@ export const CharactersModal = ({
   onClose,
   onSelectCharacter,
 }: CharactersModalProps) => {
+  const { t } = useTranslation();
   const [view, setView] = useState<ModalView>("list");
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(
     null,
@@ -145,7 +147,7 @@ export const CharactersModal = ({
         () => {
           setPendingCharacters((prev) => {
             if (!prev.some((p) => p.name === pending.name)) return prev;
-            toast.error(`Character "${pending.name}" failed to create`);
+            toast.error(t('Character "{name}" failed to create', { name: pending.name }));
             return prev.filter((p) => p.name !== pending.name);
           });
         },
@@ -154,13 +156,13 @@ export const CharactersModal = ({
     );
 
     return () => timers.forEach(clearTimeout);
-  }, [pendingCharacters]);
+  }, [pendingCharacters, t]);
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={view === "list" ? "Characters" : undefined}
+      title={view === "list" ? t("Characters") : undefined}
       className="max-w-[800px] h-[600px] max-h-[80vh] overflow-hidden"
     >
       <div
@@ -218,6 +220,7 @@ const CharacterListView = ({
   pendingCharacters: PendingCharacter[];
   onPendingResolved: (name: string) => void;
 }) => {
+  const { t } = useTranslation();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewCharacter, setPreviewCharacter] = useState<Character | null>(
@@ -273,16 +276,15 @@ const CharacterListView = ({
   const handleDelete = (character: Character) => {
     showActionReminder({
       reminderType: "default",
-      title: "Delete character?",
+      title: t("Delete character?"),
       message: (
         <p className="text-sm text-white/70">
-          This will permanently delete <strong>{character.name}</strong>. This
-          action cannot be undone.
+          {t("This will permanently delete")} <strong>{character.name}</strong>. {t("This action cannot be undone.")}
         </p>
       ),
-      primaryActionText: "Delete",
+      primaryActionText: t("Delete"),
       primaryActionIcon: Trash2Icon,
-      secondaryActionText: "Cancel",
+      secondaryActionText: t("Cancel"),
       primaryActionBtnClassName: "bg-red text-white hover:bg-red/90",
       onPrimaryAction: async () => {
         if (actionReminderProps.value) {
@@ -302,12 +304,12 @@ const CharacterListView = ({
               prev.filter((c) => c.token !== character.token),
             );
             storeRemoveCharacter(character.token);
-            toast.success(`Character "${character.name}" deleted`);
+            toast.success(t('Character "{name}" deleted', { name: character.name }));
           } else {
-            toast.error(res.errorMessage || "Failed to delete character");
+            toast.error(res.errorMessage || t("Failed to delete character"));
           }
         } catch {
-          toast.error("Failed to delete character");
+          toast.error(t("Failed to delete character"));
         } finally {
           isActionReminderOpen.value = false;
         }
@@ -358,7 +360,7 @@ const CharacterListView = ({
           >
             <div className="flex aspect-square w-full flex-col items-center justify-center gap-2">
               <PlusIcon  className="text-lg" />
-              <span className="text-sm font-medium">Create New</span>
+              <span className="text-sm font-medium">{t("Create New")}</span>
             </div>
           </button>
 
@@ -385,7 +387,7 @@ const CharacterListView = ({
                     
                     className="text-lg text-white/80 animate-spin" />
                   <span className="text-xs font-medium text-white/80">
-                    Creating...
+                    {t("Creating...")}
                   </span>
                 </div>
               </div>
@@ -442,7 +444,8 @@ const CharacterListView = ({
                           e.stopPropagation();
                           setPreviewCharacter(character);
                         }}
-                        title="View full size"
+                        title={t("View full size")}
+                        aria-label={t("View {name}", { name: character.name })}
                         className="flex h-7 w-7 items-center justify-center bg-black/60 text-white/80 transition-colors hover:bg-black/80"
                       >
                         <EyeIcon  className="text-[10px]" />
@@ -512,6 +515,7 @@ const EditCharacterView = ({
   onBack: () => void;
   onSaved: () => void;
 }) => {
+  const { t } = useTranslation();
   const updateCharacterInStore = useCharactersStore((s) => s.updateCharacter);
   const [name, setName] = useState(character.name);
   const [description, setDescription] = useState(
@@ -525,7 +529,7 @@ const EditCharacterView = ({
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast.error("Name cannot be empty");
+      toast.error(t("Name cannot be empty"));
       return;
     }
 
@@ -542,14 +546,14 @@ const EditCharacterView = ({
       });
 
       if (res.success) {
-        toast.success("Character updated");
+        toast.success(t("Character updated"));
         updateCharacterInStore(character.token, { name: name.trim() });
         onSaved();
       } else {
-        toast.error(res.errorMessage || "Failed to update character");
+        toast.error(res.errorMessage || t("Failed to update character"));
       }
     } catch {
-      toast.error("Failed to update character");
+      toast.error(t("Failed to update character"));
     } finally {
       setSaving(false);
     }
@@ -567,7 +571,7 @@ const EditCharacterView = ({
           >
             <ArrowLeftIcon />
           </button>
-          <h2 className="text-xl font-bold text-base-fg">Edit Character</h2>
+          <h2 className="text-xl font-bold text-base-fg">{t("Edit Character")}</h2>
         </div>
 
         {/* Avatar preview */}
@@ -584,13 +588,13 @@ const EditCharacterView = ({
         {/* Name input */}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="edit-character-name" className={FIELD_LABEL_CLASSES}>
-            Name
+            {t("Name")}
           </Label>
           <Input
             id="edit-character-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Character name"
+            placeholder={t("Character name")}
             autoComplete="off"
             inputClassName="bg-ui-controls text-sm"
           />
@@ -602,14 +606,14 @@ const EditCharacterView = ({
             htmlFor="edit-character-description"
             className={FIELD_LABEL_CLASSES}
           >
-            Description{" "}
-            <span className="font-normal text-base-fg/40">(optional)</span>
+            {t("Description")} {" "}
+            <span className="font-normal text-base-fg/40">{t("(optional)")}</span>
           </Label>
           <textarea
             id="edit-character-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description..."
+            placeholder={t("Description...")}
             rows={3}
             autoComplete="off"
             className="w-full resize-none rounded-[3px] border border-ui-panel-border bg-ui-controls px-3 py-2 text-sm text-base-fg placeholder-base-fg/50 outline-none transition-colors focus:border-white focus:!outline-none"
@@ -620,7 +624,7 @@ const EditCharacterView = ({
       {/* Action buttons */}
       <div className="flex justify-end gap-2 pt-4">
         <Button variant="secondary" onClick={onBack}>
-          Cancel
+          {t("Cancel")}
         </Button>
         <Button
           variant="primary"
@@ -628,7 +632,7 @@ const EditCharacterView = ({
           loading={saving}
           disabled={saving || !name.trim() || !hasChanges}
         >
-          Save
+          {t("Save")}
         </Button>
       </div>
     </div>
@@ -646,6 +650,7 @@ const NewCharacterView = ({
   onBack: () => void;
   onCreated: (pending: { name: string; previewUrl?: string }) => void;
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<UploadedImage[]>([]);
@@ -665,7 +670,7 @@ const NewCharacterView = ({
         f.type.startsWith("image/"),
       );
       if (imageFiles.length === 0) {
-        toast.error("Please upload image files");
+        toast.error(t("Please upload image files"));
         return;
       }
 
@@ -698,11 +703,11 @@ const NewCharacterView = ({
           if (res.success && res.data) {
             updatedImages.push({ ...img, mediaToken: res.data });
           } else {
-            toast.error(`Failed to upload ${img.file.name}`);
+            toast.error(t("Failed to upload {filename}", { filename: img.file.name }));
             updatedImages.push(img);
           }
         } catch {
-          toast.error(`Failed to upload ${img.file.name}`);
+          toast.error(t("Failed to upload {filename}", { filename: img.file.name }));
           updatedImages.push(img);
         }
       }
@@ -715,7 +720,7 @@ const NewCharacterView = ({
       );
       setUploading(false);
     },
-    [name],
+    [name, t],
   );
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -772,13 +777,13 @@ const NewCharacterView = ({
 
   const handleCreate = async () => {
     if (!name.trim()) {
-      toast.error("Please enter a character name");
+      toast.error(t("Please enter a character name"));
       return;
     }
 
     const uploadedImages = images.filter((img) => img.mediaToken);
     if (uploadedImages.length < 1) {
-      toast.error("Please upload a reference image");
+      toast.error(t("Please upload a reference image"));
       return;
     }
 
@@ -794,17 +799,17 @@ const NewCharacterView = ({
       });
 
       if (res.success && res.data) {
-        toast.success(`Character "${name.trim()}" is being created`);
+        toast.success(t('Character "{name}" is being created', { name: name.trim() }));
         // Pass pending info up so the list shows an optimistic card
         onCreated({
           name: name.trim(),
           previewUrl: uploadedImages[0]!.url,
         });
       } else {
-        toast.error(res.errorMessage || "Failed to create character");
+        toast.error(res.errorMessage || t("Failed to create character"));
       }
     } catch {
-      toast.error("Failed to create character");
+      toast.error(t("Failed to create character"));
     } finally {
       setCreating(false);
     }
@@ -829,7 +834,7 @@ const NewCharacterView = ({
           >
             <ArrowLeftIcon />
           </button>
-          <h2 className="text-xl font-bold text-base-fg">New Character</h2>
+          <h2 className="text-xl font-bold text-base-fg">{t("New Character")}</h2>
         </div>
 
         {/* Image upload area */}
@@ -852,7 +857,7 @@ const NewCharacterView = ({
             >
               <img
                 src={images[0]!.url}
-                alt="Reference"
+                alt={t("Reference")}
                 className="max-h-full max-w-full object-contain"
               />
               {!images[0]!.mediaToken && (
@@ -877,9 +882,9 @@ const NewCharacterView = ({
               <UploadIcon
                 
                 className="mb-2 text-xl text-base-fg/40" />
-              <p className="text-sm">Upload reference image</p>
+              <p className="text-sm">{t("Upload reference image")}</p>
               <p className="mb-3 text-xs text-base-fg/40">
-                Click or drag an image here
+                {t("Click or drag an image here")}
               </p>
               <div
                 className="flex items-center gap-3"
@@ -890,14 +895,14 @@ const NewCharacterView = ({
                   className="flex items-center gap-2 rounded-[3px] border border-base-fg/15 bg-transparent px-3 py-1.5 text-sm text-base-fg/80 transition-colors hover:border-base-fg/25 hover:bg-base-fg/[0.07] hover:text-base-fg"
                 >
                   <ImagesIcon  className="text-xs" />
-                  Choose from Library
+                  {t("Choose from Library")}
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="flex items-center gap-2 rounded-[3px] border border-base-fg/15 bg-transparent px-3 py-1.5 text-sm text-base-fg/80 transition-colors hover:border-base-fg/25 hover:bg-base-fg/[0.07] hover:text-base-fg"
                 >
                   <UploadIcon  className="text-xs" />
-                  Upload Image
+                  {t("Upload Image")}
                 </button>
               </div>
             </div>
@@ -915,13 +920,13 @@ const NewCharacterView = ({
         {/* Name input */}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="character-name" className={FIELD_LABEL_CLASSES}>
-            Name
+            {t("Name")}
           </Label>
           <Input
             id="character-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Character name"
+            placeholder={t("Character name")}
             autoComplete="off"
             inputClassName="bg-ui-controls text-sm"
           />
@@ -933,14 +938,14 @@ const NewCharacterView = ({
             htmlFor="character-description"
             className={FIELD_LABEL_CLASSES}
           >
-            Description{" "}
-            <span className="font-normal text-base-fg/40">(optional)</span>
+            {t("Description")} {" "}
+            <span className="font-normal text-base-fg/40">{t("(optional)")}</span>
           </Label>
           <textarea
             id="character-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description..."
+            placeholder={t("Description...")}
             rows={3}
             autoComplete="off"
             className="w-full resize-none rounded-[3px] border border-ui-panel-border bg-ui-controls px-3 py-2 text-sm text-base-fg placeholder-base-fg/50 outline-none transition-colors focus:border-white focus:!outline-none"
@@ -951,7 +956,7 @@ const NewCharacterView = ({
       {/* Action buttons — sticky at the bottom */}
       <div className="sticky bottom-0 flex justify-end gap-2 pt-4 pb-1 bg-ui-modal">
         <Button variant="secondary" onClick={onBack}>
-          Cancel
+          {t("Cancel")}
         </Button>
         <Button
           variant="primary"
@@ -964,7 +969,7 @@ const NewCharacterView = ({
             images.filter((i) => i.mediaToken).length < 1
           }
         >
-          Create
+          {t("Create")}
         </Button>
       </div>
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { XIcon } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "@storyteller/common";
 import { FOLDER_COLOR_PRESETS } from "./folderUtils";
 
 interface FolderColorRowProps {
@@ -16,12 +17,21 @@ export const FolderColorRow: React.FC<FolderColorRowProps> = ({
   colorCode,
   onSetColor,
 }) => (
-  <div className="flex flex-wrap items-center gap-1.5 px-2 py-2">
+  <FolderColorRowContent colorCode={colorCode} onSetColor={onSetColor} />
+);
+
+const FolderColorRowContent: React.FC<FolderColorRowProps> = ({
+  colorCode,
+  onSetColor,
+}) => {
+  const { t } = useTranslation();
+
+  return <div className="flex flex-wrap items-center gap-1.5 px-2 py-2">
     {FOLDER_COLOR_PRESETS.map((c) => (
       <button
         key={c}
         type="button"
-        aria-label={`Color ${c}`}
+        aria-label={t("Color {color}", { color: c })}
         onClick={() => onSetColor(c)}
         style={{ backgroundColor: c }}
         className={twMerge(
@@ -34,7 +44,7 @@ export const FolderColorRow: React.FC<FolderColorRowProps> = ({
     {/* Clear color */}
     <button
       type="button"
-      aria-label="Clear color"
+      aria-label={t("Clear color")}
       onClick={() => onSetColor(null)}
       className={twMerge(
         "flex h-5 w-5 items-center justify-center rounded-[3px] border border-ui-panel-border text-base-fg/50 hover:text-base-fg",
@@ -45,7 +55,7 @@ export const FolderColorRow: React.FC<FolderColorRowProps> = ({
     </button>
     {/* Custom hex (native picker) */}
     <label
-      title="Custom color"
+      title={t("Custom color")}
       className="relative h-5 w-5 cursor-pointer overflow-hidden rounded-[3px] border border-ui-panel-border"
       style={{
         background:
@@ -63,5 +73,5 @@ export const FolderColorRow: React.FC<FolderColorRowProps> = ({
         className="absolute -inset-1 h-[150%] w-[150%] cursor-pointer opacity-0"
       />
     </label>
-  </div>
-);
+  </div>;
+};

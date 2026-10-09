@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "@storyteller/common";
 
 import { LoadingDots } from "@storyteller/ui-loading";
 import { Modal } from "@storyteller/ui-modal";
@@ -26,6 +27,7 @@ export function UploadModalMedia({
   title,
   fileTypes,
 }: Props) {
+  const { t } = useTranslation();
   const [uploaderState, setUploaderState] =
     useState<UploaderState>(initialUploaderState);
 
@@ -47,7 +49,7 @@ export function UploadModalMedia({
       case UploaderStates.ready:
         return (
           <UploadFilesMedia
-            title={title}
+            title={t(title)}
             fileTypes={fileTypes}
             onClose={onClose}
             onUploadProgress={updateUploaderState}
@@ -59,13 +61,13 @@ export function UploadModalMedia({
         return (
           <>
             <LoadingDots className="mb-1 bg-transparent" />
-            <div className="hud-label w-full text-center text-base-fg/50">Uploading...</div>
+            <div className="hud-label w-full text-center text-base-fg/50">{t("Uploading...")}</div>
           </>
         );
       case UploaderStates.success:
         return (
           <UploadSuccess
-            title={title}
+            title={t(title)}
             onOk={() => {
               onSuccess();
               onClose();
@@ -99,7 +101,7 @@ export function UploadModalMedia({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+    <Modal isOpen={isOpen} onClose={onClose} title={t(title)}>
       {/* Inline call — `<Comp />` would be a fresh component reference each render, remounting the dropzone mid-click and breaking the file picker. */}
       {UploaderModalContent()}
     </Modal>

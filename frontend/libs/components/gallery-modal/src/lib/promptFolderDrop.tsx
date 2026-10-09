@@ -6,6 +6,7 @@ import {
 export interface FolderDropPromptOptions {
   count: number;
   targetFolderName?: string;
+  t: (source: string, params?: Record<string, string | number>) => string;
   onMove: () => void | Promise<void>;
   onAdd: () => void | Promise<void>;
 }
@@ -18,21 +19,31 @@ export interface FolderDropPromptOptions {
 export function promptFolderDrop({
   count,
   targetFolderName,
+  t,
   onMove,
   onAdd,
 }: FolderDropPromptOptions): void {
-  const plural = count === 1 ? "" : "s";
-  const dest = targetFolderName ? ` to "${targetFolderName}"` : "";
+  const folder = targetFolderName ?? t("the selected folder");
   showActionReminder({
     reminderType: "default",
-    title: `Move or copy ${count} item${plural}?`,
+    title:
+      count === 1
+        ? t("Move or copy this item?")
+        : t("Move or copy {count} items?", { count }),
     message: (
       <p className="text-sm text-white/70">
-        Move{dest} removes {count === 1 ? "it" : "them"} from the current folder.
-        Add a copy keeps {count === 1 ? "it" : "them"} in both.
+        {count === 1
+          ? t(
+              "Moving this item to {folder} removes it from the current folder. Adding a copy keeps it in both.",
+              { folder },
+            )
+          : t(
+              "Moving {count} items to {folder} removes them from the current folder. Adding copies keeps them in both.",
+              { count, folder },
+            )}
       </p>
     ),
-    primaryActionText: "Move here",
+    primaryActionText: t("Move here"),
     onPrimaryAction: async () => {
       try {
         await onMove();
@@ -40,7 +51,7 @@ export function promptFolderDrop({
         isActionReminderOpen.value = false;
       }
     },
-    secondaryActionText: "Add a copy",
+    secondaryActionText: t("Add a copy"),
     onSecondaryAction: async () => {
       try {
         await onAdd();

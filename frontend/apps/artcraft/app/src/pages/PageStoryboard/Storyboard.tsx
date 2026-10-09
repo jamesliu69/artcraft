@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { CheckIcon, EraserIcon, FastForwardIcon, ImagesIcon, PauseIcon, PencilIcon, PlayIcon, PlusIcon, RewindIcon, RotateCcwIcon, SkipBackIcon, SkipForwardIcon, TrashIcon, UploadIcon, XIcon } from "lucide-react";
 import { DynamicIcon } from "@storyteller/icons";
 import { Button } from "@storyteller/ui-button";
+import { useTranslation } from "@storyteller/common";
 import { twMerge } from "tailwind-merge";
 import { useStoryboardStore, type Board } from "./StoryboardStore";
 
@@ -37,22 +38,25 @@ const formatTime = (s: number): string => {
 
 // ─── EmptyState ───────────────────────────────────────────────────────────────
 
-const EmptyState = ({ onAdd }: { onAdd: () => void }) => (
-  <div className="flex h-[calc(100vh-56px)] w-full items-center justify-center bg-ui-background">
-    <div className="flex flex-col items-center gap-4 text-center">
-      <div className="flex h-20 w-20 items-center justify-center border border-white/15 bg-white/[0.015]">
-        <ImagesIcon  className="text-4xl text-base-fg/40" />
+const EmptyState = ({ onAdd }: { onAdd: () => void }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex h-[calc(100vh-56px)] w-full items-center justify-center bg-ui-background">
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="flex h-20 w-20 items-center justify-center border border-white/15 bg-white/[0.015]">
+          <ImagesIcon className="text-4xl text-base-fg/40" />
+        </div>
+        <div>
+          <p className="font-display text-2xl tracking-tight text-base-fg">{t("No shots yet")}</p>
+          <p className="mt-1 text-sm text-base-fg/50">{t("Add your first shot to get started")}</p>
+        </div>
+        <Button variant="primary" icon={PlusIcon} onClick={onAdd}>
+          {t("Add your first shot")}
+        </Button>
       </div>
-      <div>
-        <p className="font-display text-2xl tracking-tight text-base-fg">No shots yet</p>
-        <p className="mt-1 text-sm text-base-fg/50">Add your first shot to get started</p>
-      </div>
-      <Button variant="primary" icon={PlusIcon} onClick={onAdd}>
-        Add your first shot
-      </Button>
     </div>
-  </div>
-);
+  );
+};
 
 // ─── MetadataEditor ───────────────────────────────────────────────────────────
 
@@ -64,60 +68,62 @@ interface MetadataEditorProps {
   onSketch: () => void;
 }
 
-const MetadataEditor = ({ board, onUpdate, onDelete, onUpload, onSketch }: MetadataEditorProps) => (
-  <aside className="flex w-[280px] shrink-0 flex-col border-r border-ui-panel-border bg-ui-panel">
+const MetadataEditor = ({ board, onUpdate, onDelete, onUpload, onSketch }: MetadataEditorProps) => {
+  const { t } = useTranslation();
+  return (
+    <aside className="flex w-[280px] shrink-0 flex-col border-r border-ui-panel-border bg-ui-panel">
     <div className="flex-1 overflow-y-auto p-4">
       <div className="flex flex-col gap-3">
         <div className="hud-label text-base-fg/40">
-          Shot {board.shotNumber}
+          {t("Shot {number}", { number: board.shotNumber })}
         </div>
 
         <div>
-          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">Title</label>
+          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">{t("Title")}</label>
           <input
             type="text"
             value={board.title}
             onChange={(e) => onUpdate({ title: e.target.value })}
-            placeholder="Shot title"
+            placeholder={t("Shot title")}
             className="w-full rounded-[3px] border border-white/15 bg-ui-controls px-3 py-2 text-sm text-base-fg placeholder:text-base-fg/30 focus:border-white/60 focus:outline-none"
           />
         </div>
 
         <div>
-          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">Dialogue</label>
+          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">{t("Dialogue")}</label>
           <textarea
             value={board.dialogue}
             onChange={(e) => onUpdate({ dialogue: e.target.value })}
-            placeholder="Character dialogue..."
+            placeholder={t("Character dialogue...")}
             rows={3}
             className="w-full resize-none rounded-[3px] border border-white/15 bg-ui-controls px-3 py-2 text-sm text-base-fg placeholder:text-base-fg/30 focus:border-white/60 focus:outline-none"
           />
         </div>
 
         <div>
-          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">Action</label>
+          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">{t("Action")}</label>
           <textarea
             value={board.action}
             onChange={(e) => onUpdate({ action: e.target.value })}
-            placeholder="On-screen action..."
+            placeholder={t("On-screen action...")}
             rows={3}
             className="w-full resize-none rounded-[3px] border border-white/15 bg-ui-controls px-3 py-2 text-sm text-base-fg placeholder:text-base-fg/30 focus:border-white/60 focus:outline-none"
           />
         </div>
 
         <div>
-          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">Notes</label>
+          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">{t("Notes")}</label>
           <textarea
             value={board.notes}
             onChange={(e) => onUpdate({ notes: e.target.value })}
-            placeholder="Director notes..."
+            placeholder={t("Director notes...")}
             rows={3}
             className="w-full resize-none rounded-[3px] border border-white/15 bg-ui-controls px-3 py-2 text-sm text-base-fg placeholder:text-base-fg/30 focus:border-white/60 focus:outline-none"
           />
         </div>
 
         <div>
-          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">Duration (seconds)</label>
+          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">{t("Duration (seconds)")}</label>
           <input
             type="number"
             min={0}
@@ -132,10 +138,10 @@ const MetadataEditor = ({ board, onUpdate, onDelete, onUpload, onSketch }: Metad
 
     <div className="flex flex-col gap-2 border-t border-ui-panel-border p-4">
       <Button variant="action" icon={PencilIcon} onClick={onSketch} className="w-full justify-center">
-        Sketch
+        {t("Sketch")}
       </Button>
       <Button variant="action" icon={UploadIcon} onClick={onUpload} className="w-full justify-center">
-        Upload Image
+        {t("Upload Image")}
       </Button>
       <Button
         variant="action"
@@ -143,11 +149,12 @@ const MetadataEditor = ({ board, onUpdate, onDelete, onUpload, onSketch }: Metad
         onClick={onDelete}
         className="w-full justify-center text-red-400 hover:text-red-300"
       >
-        Delete Shot
+        {t("Delete Shot")}
       </Button>
     </div>
-  </aside>
-);
+    </aside>
+  );
+};
 
 // ─── MainPreview ──────────────────────────────────────────────────────────────
 
@@ -157,15 +164,17 @@ const MainPreview = ({
 }: {
   board: Board | null;
   onUploadClick: () => void;
-}) => (
-  <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-ui-background">
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-ui-background">
     {board === null ? (
-      <p className="text-sm text-base-fg/30">Select a shot</p>
+      <p className="text-sm text-base-fg/30">{t("Select a shot")}</p>
     ) : board.imageDataUrl ? (
       <>
         <img
           src={board.imageDataUrl}
-          alt={board.title || `Shot ${board.shotNumber}`}
+          alt={board.title || t("Shot {number}", { number: board.shotNumber })}
           className="max-h-full max-w-full object-contain"
           style={{ pointerEvents: "none" }}
         />
@@ -181,11 +190,12 @@ const MainPreview = ({
         className="flex flex-col items-center gap-3 border border-dashed border-white/20 bg-white/[0.015] p-12 text-base-fg/40 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-base-fg/70"
       >
         <UploadIcon  className="text-3xl" />
-        <span className="text-sm">Click to upload an image</span>
+        <span className="text-sm">{t("Click to upload an image")}</span>
       </button>
     )}
-  </div>
-);
+    </div>
+  );
+};
 
 // ─── SketchCanvas ─────────────────────────────────────────────────────────────
 
@@ -198,6 +208,7 @@ interface SketchCanvasProps {
 }
 
 const SketchCanvas = ({ initialImageDataUrl, onSave, onExit }: SketchCanvasProps) => {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
   const prevPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -327,13 +338,13 @@ const SketchCanvas = ({ initialImageDataUrl, onSave, onExit }: SketchCanvasProps
     if (dataUrl) onSave(dataUrl);
   };
 
-  const toolBtn = (t: SketchTool, icon: typeof PencilIcon, label: string) => (
+  const toolBtn = (toolId: SketchTool, icon: typeof PencilIcon, label: string) => (
     <button
-      onClick={() => setTool(t)}
+      onClick={() => setTool(toolId)}
       title={label}
       className={twMerge(
         "flex h-8 w-8 items-center justify-center rounded-[3px] transition-colors",
-        tool === t
+        tool === toolId
           ? "bg-white text-black"
           : "text-base-fg/60 hover:bg-white/10 hover:text-base-fg",
       )}
@@ -346,13 +357,13 @@ const SketchCanvas = ({ initialImageDataUrl, onSave, onExit }: SketchCanvasProps
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Toolbar */}
       <div className="flex items-center gap-2 border-b border-ui-panel-border bg-ui-panel px-3 py-1.5">
-        {toolBtn("pencil", PencilIcon, "Pencil")}
-        {toolBtn("eraser", EraserIcon, "Eraser")}
+        {toolBtn("pencil", PencilIcon, t("Pencil"))}
+        {toolBtn("eraser", EraserIcon, t("Eraser"))}
 
         <div className="mx-1 h-5 w-px bg-ui-panel-border" />
 
         {/* Color picker */}
-        <label className="relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-[3px] border border-white/15 hover:border-white/30" title="Stroke color">
+        <label className="relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-[3px] border border-white/15 hover:border-white/30" title={t("Stroke color")}>
           <span
             className="h-4 w-4 rounded-sm border border-white/20"
             style={{ background: color }}
@@ -367,7 +378,7 @@ const SketchCanvas = ({ initialImageDataUrl, onSave, onExit }: SketchCanvasProps
 
         {/* Brush size */}
         <div className="flex items-center gap-1.5">
-          <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-base-fg/40">Size</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-base-fg/40">{t("Size")}</span>
           <input
             type="range"
             min={1}
@@ -384,7 +395,7 @@ const SketchCanvas = ({ initialImageDataUrl, onSave, onExit }: SketchCanvasProps
         <button
           onClick={handleUndo}
           disabled={undoStack.length === 0}
-          title="Undo"
+          title={t("Undo")}
           className="flex h-8 w-8 items-center justify-center rounded-[3px] text-base-fg/60 transition-colors hover:bg-white/10 hover:text-base-fg disabled:opacity-30"
         >
           <RotateCcwIcon  className="text-sm" />
@@ -392,7 +403,7 @@ const SketchCanvas = ({ initialImageDataUrl, onSave, onExit }: SketchCanvasProps
 
         <button
           onClick={handleClear}
-          title="Clear canvas"
+          title={t("Clear canvas")}
           className="flex h-8 w-8 items-center justify-center rounded-[3px] text-base-fg/60 transition-colors hover:bg-white/10 hover:text-red-400"
         >
           <XIcon  className="text-sm" />
@@ -400,11 +411,11 @@ const SketchCanvas = ({ initialImageDataUrl, onSave, onExit }: SketchCanvasProps
 
         <button
           onClick={onExit}
-          title="Done sketching"
+          title={t("Done sketching")}
           className="ml-auto flex h-8 items-center gap-1.5 rounded-[3px] bg-white px-3 text-xs font-medium text-black transition-colors hover:bg-white/85"
         >
           <CheckIcon  className="text-xs" />
-          Done
+          {t("Done")}
         </button>
       </div>
 
@@ -511,32 +522,36 @@ const Filmstrip = ({
   onDragOver,
   onDrop,
   onDragEnd,
-}: FilmstripProps) => (
-  <div className="flex h-[80px] shrink-0 items-center gap-2 overflow-x-auto border-t border-ui-panel-border bg-ui-panel px-3">
-    <button
-      onClick={onAdd}
-      className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-[3px] border border-dashed border-white/20 bg-white/[0.015] text-base-fg/40 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-base-fg"
-      title="Add shot"
-    >
-      <PlusIcon />
-    </button>
+}: FilmstripProps) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex h-[80px] shrink-0 items-center gap-2 overflow-x-auto border-t border-ui-panel-border bg-ui-panel px-3">
+      <button
+        onClick={onAdd}
+        className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-[3px] border border-dashed border-white/20 bg-white/[0.015] text-base-fg/40 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-base-fg"
+        title={t("Add shot")}
+        aria-label={t("Add shot")}
+      >
+        <PlusIcon />
+      </button>
 
-    {boards.map((board, index) => (
-      <ThumbnailItem
-        key={board.id}
-        board={board}
-        index={index}
-        isSelected={board.id === selectedBoardId}
-        isDragOver={dragOverIndex === index}
-        onSelect={() => onSelect(board.id)}
-        onDragStart={onDragStart}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
-        onDragEnd={onDragEnd}
-      />
-    ))}
-  </div>
-);
+      {boards.map((board, index) => (
+        <ThumbnailItem
+          key={board.id}
+          board={board}
+          index={index}
+          isSelected={board.id === selectedBoardId}
+          isDragOver={dragOverIndex === index}
+          onSelect={() => onSelect(board.id)}
+          onDragStart={onDragStart}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+          onDragEnd={onDragEnd}
+        />
+      ))}
+    </div>
+  );
+};
 
 // ─── Timeline ─────────────────────────────────────────────────────────────────
 
@@ -566,6 +581,7 @@ const Timeline = ({
   onSeek,
   onReorder,
 }: TimelineProps) => {
+  const { t } = useTranslation();
   const laneRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<{ id: string; startX: number; startDuration: number } | null>(null);
   // Store full drag data in a ref so onUp can read it without going through a setState updater
@@ -709,7 +725,7 @@ const Timeline = ({
       {/* Header row */}
       <div className="flex items-center justify-between border-b border-ui-panel-border/40 px-3 py-1">
         <span className="font-mono text-xs tabular-nums text-base-fg/50">{formatTime(currentTimeSeconds)}</span>
-        <span className="hud-label text-base-fg/25">Timeline</span>
+        <span className="hud-label text-base-fg/25">{t("Timeline")}</span>
         <span className="font-mono text-xs tabular-nums text-base-fg/50">{formatTime(totalDuration)}</span>
       </div>
 
@@ -785,7 +801,7 @@ const Timeline = ({
                   className="absolute right-0 top-0 bottom-0 w-2 opacity-0 transition-opacity hover:bg-white/30 hover:opacity-100"
                   style={{ cursor: "ew-resize" }}
                   onPointerDown={(e) => handleResizePointerDown(e, board.id, board.duration)}
-                  title="Drag to resize duration"
+                  title={t("Drag to resize duration")}
                 />
               </div>
             );
@@ -844,6 +860,7 @@ const PlaybackControls = ({
   onPrevScene,
   onNextScene,
 }: PlaybackControlsProps) => {
+  const { t } = useTranslation();
   const transportBtnClass =
     "flex h-9 w-9 items-center justify-center rounded-[3px] text-base-fg/70 transition-colors hover:bg-white/10 hover:text-base-fg active:scale-95";
 
@@ -853,7 +870,7 @@ const PlaybackControls = ({
       <div className="flex w-32 flex-col">
         <span className="font-mono text-xs tabular-nums text-base-fg/60">{formatTime(currentTimeSeconds)}</span>
         <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-base-fg/30">
-          {currentBoardNumber !== null ? `Shot ${currentBoardNumber}` : "—"}
+          {currentBoardNumber !== null ? t("Shot {number}", { number: currentBoardNumber }) : "—"}
         </span>
       </div>
 
@@ -862,14 +879,14 @@ const PlaybackControls = ({
         <button
           className={transportBtnClass}
           onClick={onPrevScene}
-          title="Go to start (Ctrl+←)"
+          title={t("Go to start (Ctrl+←)")}
         >
           <RewindIcon />
         </button>
         <button
           className={transportBtnClass}
           onClick={onPrevBoard}
-          title="Previous shot (←)"
+          title={t("Previous shot (←)")}
         >
           <SkipBackIcon />
         </button>
@@ -878,7 +895,7 @@ const PlaybackControls = ({
         <button
           className="mx-1 flex h-10 w-10 items-center justify-center rounded-[3px] bg-white text-black transition-all hover:bg-white/85 active:scale-95"
           onClick={isPlaying ? onPause : onPlay}
-          title={isPlaying ? "Pause" : "Play"}
+          title={isPlaying ? t("Pause") : t("Play")}
         >
           <DynamicIcon icon={isPlaying ? PauseIcon : PlayIcon} className="text-sm" />
         </button>
@@ -886,14 +903,14 @@ const PlaybackControls = ({
         <button
           className={transportBtnClass}
           onClick={onNextBoard}
-          title="Next shot (→)"
+          title={t("Next shot (→)")}
         >
           <SkipForwardIcon />
         </button>
         <button
           className={transportBtnClass}
           onClick={onNextScene}
-          title="Go to end (Ctrl+→)"
+          title={t("Go to end (Ctrl+→)")}
         >
           <FastForwardIcon />
         </button>
@@ -902,7 +919,7 @@ const PlaybackControls = ({
       {/* Right stats */}
       <div className="flex w-32 flex-col items-end">
         <span className="font-mono text-xs tabular-nums text-base-fg/60">{formatTime(totalDuration)}</span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-base-fg/30">{totalBoards} shot{totalBoards !== 1 ? "s" : ""}</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-base-fg/30">{totalBoards === 1 ? t("1 shot") : t("{count} shots", { count: totalBoards })}</span>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { FilterEngineCategories } from "@storyteller/api";
+import { useTranslation } from "@storyteller/common";
 import { Button } from "@storyteller/ui-button";
 interface Props {
   onCancel: () => void;
@@ -13,16 +14,18 @@ export const UploadAssetError = ({
   type,
   errorMessage,
 }: Props) => {
+  const { t } = useTranslation();
+
   return (
     <>
-      <h3>Error in Uploading {type}</h3>
-      <p>{errorMessage ?? "Unknown Error"}</p>
+      <h3>{t("Error in Uploading {type}", { type })}</h3>
+      <p>{t(errorMessage ?? "Unknown Error")}</p>
       <div className="mt-6 flex justify-end gap-2">
         <Button onClick={onCancel} variant="secondary">
-          Cancel
+          {t("Cancel")}
         </Button>
         <Button onClick={onRetry} variant="primary">
-          Try again
+          {t("Try again")}
         </Button>
       </div>
     </>

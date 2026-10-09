@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import { ListDropdown } from "@storyteller/ui-list-dropdown";
 import { Select } from "@storyteller/ui-select";
@@ -54,6 +55,7 @@ export const UploadFiles3D = ({
   onUploadProgress,
   onMeshlessDetected,
 }: Props) => {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement | undefined>(undefined);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -121,7 +123,10 @@ export const UploadFiles3D = ({
     current: number;
     total: number;
   } | null>(null);
-  const [selectionError, setSelectionError] = useState<string | undefined>();
+  const [selectionError, setSelectionError] = useState<
+    | { message: string; params?: Record<string, string | number> }
+    | undefined
+  >();
   // In-flight submission guard (see handleSubmit): the state drives the
   // Upload button, the ref blocks same-tick re-entry before the disabled
   // state has re-rendered.
@@ -442,12 +447,12 @@ export const UploadFiles3D = ({
     setIsSubmitting(true);
 
     if (fileEntries.length === 0) {
-      setSelectionError("Please select a file to upload.");
+      setSelectionError({ message: "Please select a file to upload." });
       releaseSubmitGuard();
       return;
     }
     if (fileEntries.some((e) => e.status === "converting")) {
-      setSelectionError("Still converting FBX files — one moment.");
+      setSelectionError({ message: "Still converting FBX files — one moment." });
       releaseSubmitGuard();
       return;
     }
@@ -471,8 +476,12 @@ export const UploadFiles3D = ({
     if (files.length === 0) {
       setSelectionError(
         excludedCount > 0
-          ? `${excludedCount} file(s) could not be converted and cannot be uploaded.`
-          : "Please select a file to upload.",
+          ? {
+              message:
+                "{count} file(s) could not be converted and cannot be uploaded.",
+              params: { count: excludedCount },
+            }
+          : { message: "Please select a file to upload." },
       );
       releaseSubmitGuard();
       return;
@@ -487,7 +496,9 @@ export const UploadFiles3D = ({
       excludedCount += keep.filter((kept) => !kept).length;
       files = files.filter((_, i) => keep[i]);
       if (files.length === 0) {
-        setSelectionError("No animation clips found in the selected file(s).");
+        setSelectionError({
+          message: "No animation clips found in the selected file(s).",
+        });
         releaseSubmitGuard();
         return;
       }
@@ -615,7 +626,7 @@ export const UploadFiles3D = ({
         <button
           type="button"
           title={
-            previewSkeletonVisible ? "Hide skeleton" : "Show skeleton"
+            t(previewSkeletonVisible ? "Hide skeleton" : "Show skeleton")
           }
           onClick={handleSkeletonToggle}
           className={`flex h-10 w-10 items-center justify-center rounded-[3px] border transition-colors ${
@@ -637,7 +648,7 @@ export const UploadFiles3D = ({
                 label: name,
                 value: String(index),
               })),
-              { label: "T-pose (none)", value: "-1" },
+              { label: t("T-pose (none)"), value: "-1" },
             ]}
           />
         </div>
@@ -665,13 +676,21 @@ export const UploadFiles3D = ({
   // or when its conversion failed (the sidebar only exists in multi mode).
   const currentEntry = fileEntries[previewIndex];
   const convertingOverlay = isConvertingCurrent ? (
-    <h6 className="pointer-events-none absolute left-0 top-1/2 -mt-5 flex w-full items-center justify-center gap-2.5 text-center opacity-60">
+      <h6 className="pointer-events-none absolute left-0 top-1/2 -mt-5 flex w-full items-center justify-center gap-2.5 text-center opacity-60">
       <LoaderIcon  className="animate-spin" />
-      Converting FBX to GLB...
+      {t("Converting FBX to GLB...")}
     </h6>
   ) : currentEntry?.status === "error" && isFbx(currentEntry.file) ? (
     <h6 className="pointer-events-none absolute left-0 top-1/2 -mt-5 w-full px-4 text-center text-red-400">
-      {currentEntry.errorMessage ?? "FBX conversion failed."}
+      {currentEntry.errorMessage?.startsWith("FBX conversion failed: ")
+        ? t("FBX conversion failed: {error}", {
+            error: t(
+              currentEntry.errorMessage.slice(
+                "FBX conversion failed: ".length,
+              ),
+            ),
+          })
+        : t(currentEntry.errorMessage ?? "FBX conversion failed.")}
     </h6>
   ) : null;
 
@@ -692,7 +711,11 @@ export const UploadFiles3D = ({
         fileIcon={BoxIcon}
       />
 
-      {selectionError && <h6 className="z-10 text-red">{selectionError}</h6>}
+      {selectionError && (
+        <h6 className="z-10 text-red">
+          {t(selectionError.message, selectionError.params)}
+        </h6>
+      )}
 
       {isMulti ? (
         <PanelGroup direction="horizontal">
@@ -717,7 +740,7 @@ export const UploadFiles3D = ({
                         e.stopPropagation();
                         removeFile(i);
                       }}
-                      title="Remove"
+                       title={t("Remove")}
                     >
                       <XIcon />
                     </button>
@@ -744,7 +767,7 @@ export const UploadFiles3D = ({
                           e.stopPropagation();
                           retrySingleFile(i);
                         }}
-                        title="Retry"
+                         title={t("Retry")}
                       >
                         <RotateCwIcon />
                       </button>
@@ -775,14 +798,14 @@ export const UploadFiles3D = ({
               {!currentFile && (
                 <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 flex w-full items-center justify-center gap-2.5 text-center opacity-50">
                   <BoxIcon />
-                  Your model preview will appear here
+                  {t("Your model preview will appear here")}
                 </h6>
               )}
               {previewStatus.type.includes("Error") && (
                 <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 w-full text-center">
-                  {previewStatus.type}
+                  {t(previewStatus.type)}
                   {previewStatus.message && <br />}
-                  {previewStatus.message}
+                  {previewStatus.message && t(previewStatus.message)}
                 </h6>
               )}
             </div>
@@ -823,14 +846,14 @@ export const UploadFiles3D = ({
           {!currentFile && (
             <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 flex w-full items-center justify-center gap-2.5 text-center opacity-50">
               <BoxIcon />
-              Your model preview will appear here
+              {t("Your model preview will appear here")}
             </h6>
           )}
           {previewStatus.type.includes("Error") && (
             <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 w-full text-center">
-              {previewStatus.type}
+              {t(previewStatus.type)}
               {previewStatus.message && <br />}
-              {previewStatus.message}
+              {previewStatus.message && t(previewStatus.message)}
             </h6>
           )}
         </div>
@@ -838,24 +861,28 @@ export const UploadFiles3D = ({
 
       {(isUploading || anyUploading) && overallProgress && isMulti && (
         <p className="text-center text-sm opacity-60">
-          Uploading {overallProgress.current} / {overallProgress.total}...
+          {t("Uploading {current} / {total}...", {
+            current: overallProgress.current,
+            total: overallProgress.total,
+          })}
         </p>
       )}
 
       {!isUploading && !anyUploading && allDone && anyFailed && isMulti && (
         <p className="text-center text-sm text-red-400">
-          {fileEntries.filter((e) => e.status === "error").length} file(s)
-          failed to upload.
+          {t("{count} file(s) failed to upload.", {
+            count: fileEntries.filter((e) => e.status === "error").length,
+          })}
         </p>
       )}
 
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onClose}>
-          Cancel
+          {t("Cancel")}
         </Button>
         {!isUploading && !anyUploading && allDone && anyFailed && isMulti && (
           <Button variant="secondary" onClick={retryAllFailed}>
-            Retry Failed
+            {t("Retry Failed")}
           </Button>
         )}
         {!hasUploadStarted && (
@@ -865,10 +892,10 @@ export const UploadFiles3D = ({
             disabled={fileEntries.length === 0 || anyConverting || isSubmitting}
           >
             {anyConverting
-              ? "Converting..."
+              ? t("Converting...")
               : isSubmitting
-                ? "Uploading..."
-                : "Upload"}
+                ? t("Uploading...")
+                : t("Upload")}
           </Button>
         )}
       </div>

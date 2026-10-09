@@ -4,6 +4,7 @@ import { DynamicIcon, HighDefinitionIcon, StandardDefinitionIcon } from "@storyt
 import { PopoverItem, PopoverMenu } from "@storyteller/ui-popover";
 import { Tooltip } from "@storyteller/ui-tooltip";
 import { CommonResolution, ImageModel } from "@storyteller/model-list";
+import { useTranslation } from "@storyteller/common";
 
 interface ResolutionPickerProps {
   model: ImageModel;
@@ -28,6 +29,7 @@ export const ResolutionPicker = ({
   currentResolution,
   handleCommonResolutionSelect,
 }: ResolutionPickerProps) => {
+  const { t } = useTranslation();
   const useResolution =
     currentResolution ?? model.defaultResolution ?? undefined;
 
@@ -65,7 +67,7 @@ export const ResolutionPicker = ({
   return (
     <>
       <Tooltip
-        content="Resolution"
+        content={t("Resolution")}
         position="top"
         className="z-50"
         closeOnClick={true}
@@ -74,7 +76,7 @@ export const ResolutionPicker = ({
           items={resolutionList}
           onSelect={handleSelectAdapter}
           mode="toggle"
-          panelTitle="Resolution"
+          panelTitle={t("Resolution")}
           showIconsInList
           triggerIcon={
             <DynamicIcon

@@ -1,32 +1,32 @@
 import { PauseIcon, PlayIcon } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { DynamicIcon } from "@storyteller/icons";
 import { Tooltip } from "@storyteller/ui-tooltip";
 import { useGalleryViewStore } from "./gallery-view-store";
-
-const OPTIONS: {
-  autoplay: boolean;
-  icon: LucideIcon;
-  label: string;
-}[] = [
-  { autoplay: true, icon: PlayIcon, label: "Play video previews" },
-  { autoplay: false, icon: PauseIcon, label: "Still thumbnails" },
-];
+import { useTranslation } from "@storyteller/common";
+import { useMemo } from "react";
 
 // Segmented playing/still switch for video preview thumbnails. Sits next to
 // GalleryViewToggle on the video page; the selection is shared with the
 // gallery via useGalleryViewStore.
 export function GalleryAutoplayToggle() {
+  const { t } = useTranslation();
+  const options = useMemo(
+    () => [
+      { autoplay: true, icon: PlayIcon, label: t("Play video previews") },
+      { autoplay: false, icon: PauseIcon, label: t("Still thumbnails") },
+    ],
+    [t],
+  );
   const autoplayVideos = useGalleryViewStore((s) => s.autoplayVideos);
   const setAutoplayVideos = useGalleryViewStore((s) => s.setAutoplayVideos);
 
   return (
     <div
       role="group"
-      aria-label="Video preview playback"
+      aria-label={t("Video preview playback")}
       className="flex items-center gap-0.5 rounded-[3px] border border-white/[0.08] bg-white/[0.04] p-0.5"
     >
-      {OPTIONS.map(({ autoplay, icon, label }) => {
+      {options.map(({ autoplay, icon, label }) => {
         const active = autoplayVideos === autoplay;
         return (
           <Tooltip key={label} content={label} position="bottom" delay={300}>

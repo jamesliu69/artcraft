@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -79,13 +80,14 @@ export function WebsitePricingTable({
   onManage,
   onContact,
 }: WebsitePricingTableProps) {
+  const { t } = useTranslation();
   const hasActivePlan = !!activePlanSlug && activePlanSlug !== "free";
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/15 px-6 py-4 md:px-10">
         <div className="flex flex-wrap items-center gap-3">
           <TabSelector
-            tabs={BILLING_TABS}
+            tabs={BILLING_TABS.map((tab) => ({ ...tab, label: t(tab.label) }))}
             activeTab={cadence}
             onTabChange={(id) => setCadence(id as BillingCadence)}
             className="w-fit"
@@ -94,16 +96,18 @@ export function WebsitePricingTable({
             tabClassName="w-24 font-mono text-[11px] uppercase tracking-[0.1em]"
           />
           <span className="pricing-hud pricing-sale-badge bg-primary px-2 py-1 text-white">
-            {PROMO_PCT}% off · ends soon
+            {t("{percent}% off · ends soon", { percent: PROMO_PCT })}
           </span>
           <p className="pricing-hud hidden text-primary sm:block">
             {cadence === "yearly"
-              ? "2 months free"
-              : "Switch to yearly, save 20%"}
+              ? t("2 months free")
+              : t("Switch to yearly, save 20%")}
           </p>
         </div>
         <p className="pricing-hud hidden text-white/40 sm:block">
-          {displayName ? `Signed in as ${displayName}` : "Prices in USD"}
+          {displayName
+            ? t("Signed in as {name}", { name: displayName })
+            : t("Prices in USD")}
         </p>
       </div>
 
@@ -118,10 +122,10 @@ export function WebsitePricingTable({
             isCurrent={plan.slug === activePlanSlug}
             ctaLabel={
               plan.slug === activePlanSlug
-                ? "Current plan"
+                ? t("Current plan")
                 : hasActivePlan
-                  ? `Switch to ${plan.name}`
-                  : `Get ${plan.name}`
+                  ? t("Switch to {plan}", { plan: t(plan.name) })
+                  : t("Get {plan}", { plan: t(plan.name) })
             }
             disabled={loading || processingPlan !== null}
             processing={processingPlan === plan.slug}
@@ -144,7 +148,7 @@ export function WebsitePricingTable({
               className="pricing-hud flex items-center gap-2 text-white/55"
             >
               <CheckIcon aria-hidden className="h-3.5 w-3.5 text-primary" />
-              {point}
+              {t(point)}
             </li>
           ))}
         </ul>
@@ -155,7 +159,7 @@ export function WebsitePricingTable({
             disabled={managing}
             className="pricing-hud text-white/55 underline underline-offset-4 hover:text-white/80 disabled:opacity-50"
           >
-            {managing ? "Opening portal…" : "Manage plan"}
+            {managing ? t("Opening portal…") : t("Manage plan")}
           </button>
         )}
       </div>
@@ -184,6 +188,7 @@ function PlanCell({
   processing: boolean;
   onChoose: () => void;
 }) {
+  const { t } = useTranslation();
   const { current, basePrice } = planPricing(plan, cadence === "yearly");
   const yearlySavings =
     (plan.originalMonthlyPrice ?? plan.monthlyPrice) * 12 - plan.yearlyPrice;
@@ -204,12 +209,12 @@ function PlanCell({
         {isCurrent ? (
           <>
             <CheckIcon aria-hidden className="h-3 w-3" />
-            Your plan
+            {t("Your plan")}
           </>
         ) : (
           <>
             {HighlightIcon && <HighlightIcon aria-hidden className="h-3 w-3" />}
-            {PLAN_STYLE[plan.slug]?.highlight ?? "Plan"}
+            {t(PLAN_STYLE[plan.slug]?.highlight ?? "Plan")}
           </>
         )}
       </CellIndexRow>
@@ -217,14 +222,14 @@ function PlanCell({
       <div className="flex flex-1 flex-col p-6 md:p-8">
         <div className="flex items-center justify-between gap-3">
           <h3 className="font-display text-2xl font-medium tracking-[-0.02em] text-white">
-            {plan.name}
+            {t(plan.name)}
           </h3>
           <span className="pricing-hud bg-[var(--plan)] hover:bg-[var(--plan)] px-2 py-1 font-bold text-white">
-            {PROMO_PCT}% off
+            {t("{percent}% off", { percent: PROMO_PCT })}
           </span>
         </div>
         <p className="mt-1 text-sm text-white/55">
-          {PLAN_STYLE[plan.slug]?.tagline}
+          {PLAN_STYLE[plan.slug]?.tagline && t(PLAN_STYLE[plan.slug]!.tagline)}
         </p>
 
         <div className="mt-5 flex items-baseline gap-2">
@@ -241,11 +246,11 @@ function PlanCell({
             <>
               ${plan.yearlyPrice} billed yearly ·{" "}
               <span className="text-[var(--plan-ink)]">
-                Save ${yearlySavings}
+                {t("Save ${savings}", { savings: yearlySavings })}
               </span>
             </>
           ) : (
-            "Billed monthly · cancel anytime"
+            t("Billed monthly · cancel anytime")
           )}
         </p>
 
@@ -264,7 +269,7 @@ function PlanCell({
           {!isCurrent && <ArrowRightIcon aria-hidden className="h-3.5 w-3.5" />}
         </Button>
 
-        <p className="pricing-hud mt-8 text-white/40">What you get</p>
+        <p className="pricing-hud mt-8 text-white/40">{t("What you get")}</p>
         <FeatureList items={features.map((f) => f.text)} className="mt-3" />
       </div>
     </article>
@@ -278,30 +283,31 @@ function EnterpriseCell({
   index: string;
   onContact?: (mailtoUrl: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <article
       id="enterprise"
       className="website-plan-card plan-enterprise flex flex-col"
     >
-      <CellIndexRow index={index}>For teams</CellIndexRow>
+      <CellIndexRow index={index}>{t("For teams")}</CellIndexRow>
 
       <div className="flex flex-1 flex-col p-6 md:p-8">
         <h3 className="font-display text-2xl font-medium tracking-[-0.02em] text-white">
-          Enterprise
+          {t("Enterprise")}
         </h3>
         <div className="mt-5 flex items-baseline gap-2">
           <span className="font-display text-5xl font-medium tracking-[-0.03em] text-white">
-            Custom
+            {t("Custom")}
           </span>
         </div>
         <p className="pricing-hud mt-2 text-white/40">
-          Bespoke volume &amp; terms
+          {t("Bespoke volume & terms")}
         </p>
 
         <ContactButtons className="mt-6" onContact={onContact} />
 
         <p className="pricing-hud mt-8 text-white/40">
-          Everything in Max, plus
+          {t("Everything in {plan}, plus", { plan: t("Max") })}
         </p>
         <FeatureList items={ENTERPRISE_FEATURES} className="mt-3" />
       </div>
@@ -334,6 +340,7 @@ function FeatureList({
   items: string[];
   className?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <ul className={twMerge("flex flex-col gap-2.5", className)}>
       {items.map((text) => (
@@ -344,7 +351,7 @@ function FeatureList({
           <span className="website-plan-check mt-px flex h-4 w-4 shrink-0 items-center justify-center">
             <CheckIcon aria-hidden className="h-3 w-3" />
           </span>
-          {text}
+          {t(text)}
         </li>
       ))}
     </ul>
@@ -360,6 +367,7 @@ function ContactButtons({
   className?: string;
   onContact?: (mailtoUrl: string) => void;
 }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const mailtoUrl = `mailto:${CONTACT_EMAIL}`;
 
@@ -389,12 +397,12 @@ function ContactButtons({
         className={twMerge(PLAN_BUTTON_CLASSES, "flex-1")}
       >
         <MailIcon aria-hidden className="h-3.5 w-3.5" />
-        Contact us
+        {t("Contact us")}
       </Button>
       <Button
         type="button"
         onClick={copy}
-        aria-label={copied ? "Email copied" : "Copy email address"}
+        aria-label={copied ? t("Email copied") : t("Copy email address")}
         className={twMerge(PLAN_BUTTON_CLASSES, "w-12 px-0")}
       >
         {copied ? (

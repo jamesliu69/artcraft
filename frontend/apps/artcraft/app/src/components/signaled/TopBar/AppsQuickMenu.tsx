@@ -1,4 +1,5 @@
 import { DynamicIcon } from "@storyteller/icons";
+import { useTranslation } from "@storyteller/common";
 import { twMerge } from "tailwind-merge";
 import {
   useGenerateApps,
@@ -10,12 +11,13 @@ import {
 } from "~/config/appMenu";
 
 export const AppsQuickMenu = () => {
+  const { t } = useTranslation();
   const generateApps = useGenerateApps();
   const editApps = useEditApps();
   return (
     <div className="grid w-[680px] grid-cols-2 gap-3">
-      <AppsQuickMenuSection title="Create" apps={generateApps} />
-      <AppsQuickMenuSection title="Edit" apps={editApps} />
+      <AppsQuickMenuSection title="Create" apps={generateApps} t={t} />
+      <AppsQuickMenuSection title="Edit" apps={editApps} t={t} />
     </div>
   );
 };
@@ -23,12 +25,14 @@ export const AppsQuickMenu = () => {
 const AppsQuickMenuSection = ({
   title,
   apps,
+  t,
 }: {
   title: string;
   apps: FullAppItem[];
+  t: (source: string) => string;
 }) => (
   <div>
-    <h3 className="hud-label mb-2 px-2 text-base-fg/50">{title}</h3>
+    <h3 className="hud-label mb-2 px-2 text-base-fg/50">{t(title)}</h3>
     <div className="space-y-0.5">
       {apps.map((app) => {
         const palette = getAppCardPalette(app.id);
@@ -56,7 +60,7 @@ const AppsQuickMenuSection = ({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <div className="truncate text-[13px] font-medium">
-                  {app.label}
+                  {t(app.label)}
                 </div>
                 {app.badge && (
                   <span
@@ -70,7 +74,7 @@ const AppsQuickMenuSection = ({
                 )}
               </div>
               <div className="truncate text-[11px] text-base-fg/60">
-                {app.description}
+                {t(app.description)}
               </div>
             </div>
           </button>

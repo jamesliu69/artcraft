@@ -5,12 +5,14 @@ import { Button } from "@storyteller/ui-button";
 import { useState } from "react";
 import { useShowProviderLoginModalEvent } from "@storyteller/tauri-events";
 import { GenerationProvider } from "@storyteller/common";
+import { useTranslation } from "@storyteller/common";
 
 interface ProviderSetupModalProps {
 }
 
 export function ProviderSetupModal({
 }: ProviderSetupModalProps) {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [provider, setProvider] = useState<GenerationProvider>(GenerationProvider.Artcraft);
 
@@ -29,20 +31,30 @@ export function ProviderSetupModal({
 
   const serviceProviderName = getServiceProviderName(provider);
 
-  const modalTitle = `Set up ${serviceProviderName}`;
-  const modalSubTitle = `Add your ${serviceProviderName} account to ArtCraft!`;
+  const modalTitle = t("Set up {provider}", { provider: serviceProviderName });
+  const modalSubTitle = t("Add your {provider} account to ArtCraft!", {
+    provider: serviceProviderName,
+  });
 
   let modalDescription;
   switch (provider) {
     case GenerationProvider.Grok:
-      modalDescription = `You can add your ${serviceProviderName} account to ArtCraft by simply logging in. Use can then use it directly within Artcraft. You can add all of your AI accounts to Artcraft to use them all in one place and build the ultimate AI art tool.`;
+      modalDescription = t(
+        "You can add your {provider} account to ArtCraft by logging in. You can then use it directly within ArtCraft. Add all your AI accounts to ArtCraft to use them in one place and build the ultimate AI art tool.",
+        { provider: serviceProviderName },
+      );
       break;
     default:
-      modalDescription = `You can add your ${serviceProviderName} account to ArtCraft by simply logging in. Use your credits and account directly within Artcraft. You can add all of your AI accounts to Artcraft to use them all in one place and build the ultimate AI art tool.`;
+      modalDescription = t(
+        "You can add your {provider} account to ArtCraft by logging in. Use your credits and account directly within ArtCraft. Add all your AI accounts to ArtCraft to use them in one place and build the ultimate AI art tool.",
+        { provider: serviceProviderName },
+      );
       break;
   }
 
-  const modalButtonText = `Set up ${serviceProviderName}`;
+  const modalButtonText = t("Set up {provider}", {
+    provider: serviceProviderName,
+  });
 
   const buttonOnClick = async () => {
     switch (provider) {
@@ -74,7 +86,7 @@ export function ProviderSetupModal({
         <div className="flex flex-col gap-3">
           <p className="hud-label flex items-center gap-2 text-base-fg/55">
             <WandSparklesIcon aria-hidden className="h-3.5 w-3.5" />
-            Connect account
+            {t("Connect account")}
           </p>
           <h1 className="font-display text-3xl font-medium leading-[1.05] tracking-[-0.03em]">
             {modalTitle}

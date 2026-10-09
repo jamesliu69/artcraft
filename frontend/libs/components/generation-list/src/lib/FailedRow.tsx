@@ -2,6 +2,7 @@ import { memo, type ReactNode } from "react";
 import { CircleAlertIcon, XIcon } from "lucide-react";
 import { getCreatorIconPathForModelId } from "@storyteller/model-list";
 import { CopyPromptButton } from "./CopyPromptButton";
+import { useTranslation } from "@storyteller/common";
 
 export interface FailedRowProps {
   id: string;
@@ -32,6 +33,7 @@ export const FailedRow = memo(function FailedRow({
   onDismiss,
   onCopyPromptResult,
 }: FailedRowProps) {
+  const { t } = useTranslation();
   const iconPath = modelId ? getCreatorIconPathForModelId(modelId) : null;
 
   return (
@@ -53,7 +55,7 @@ export const FailedRow = memo(function FailedRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-start gap-2">
           <p className="min-w-0 flex-1 truncate text-sm font-medium text-red-400">
-            {failureReason || "Generation failed"}
+            {failureReason || t("Generation failed")}
           </p>
           {prompt && (
             <CopyPromptButton text={prompt} onCopyResult={onCopyPromptResult} />
@@ -88,7 +90,7 @@ export const FailedRow = memo(function FailedRow({
         className="flex shrink-0 items-center gap-1.5 rounded-[3px] bg-white/5 px-3 py-1.5 text-xs text-white/50 transition-colors hover:bg-white/10 hover:text-white/70"
       >
         <XIcon />
-        Dismiss
+        {t("Dismiss")}
       </button>
     </div>
   );

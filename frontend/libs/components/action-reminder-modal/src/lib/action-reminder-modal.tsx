@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { LogInIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "@storyteller/common";
 
 export type ReminderType = "default" | "soraLogin" | "artcraftLogin";
 
@@ -43,6 +44,9 @@ export function ActionReminderModal({
   primaryActionIcon: customPrimaryActionIcon = LogInIcon,
   primaryActionBtnClassName: customPrimaryActionBtnClassName = "",
 }: ActionReminderModalProps) {
+  const { t } = useTranslation();
+  const localizedCustomMessage =
+    typeof customMessage === "string" ? t(customMessage) : customMessage;
   let titleText: string | undefined;
   let messageContent: ReactNode;
   let primaryActionBtnText: string;
@@ -52,13 +56,13 @@ export function ActionReminderModal({
   if (!hideTitle) {
     switch (reminderType) {
       case "soraLogin":
-        titleText = customTitle || "Link Your OpenAI Sora Account";
+        titleText = t(customTitle || "Link Your OpenAI Sora Account");
         break;
       case "artcraftLogin":
-        titleText = customTitle || "Login to ArtCraft";
+        titleText = t(customTitle || "Login to ArtCraft");
         break;
       default:
-        titleText = customTitle || "Action Required";
+        titleText = t(customTitle || "Action Required");
         break;
     }
   } else {
@@ -67,42 +71,40 @@ export function ActionReminderModal({
 
   switch (reminderType) {
     case "soraLogin":
-      titleText = customTitle || "Link Your OpenAI Account";
-      messageContent = customMessage || (
+      titleText = t(customTitle || "Link Your OpenAI Account");
+      messageContent = localizedCustomMessage || (
         <p>
-          To use this feature, please connect your OpenAI account. This allows
-          us to leverage your existing subscription.
+          {t("To use this feature, please connect your OpenAI account. This lets you use your existing subscription.")}
         </p>
       );
-      primaryActionBtnText = customPrimaryActionText || "Login with OpenAI";
+      primaryActionBtnText = t(customPrimaryActionText || "Login with OpenAI");
       primaryActionIcon = customPrimaryActionIcon || LogInIcon;
       primaryActionBtnClassName = customPrimaryActionBtnClassName || "";
       break;
     case "artcraftLogin":
-      messageContent = customMessage || (
+      messageContent = localizedCustomMessage || (
         <p className="text-sm text-white/70">
-          Please log in or sign up to ArtCraft to proceed. This will allow you
-          to save your work and access all features.
+          {t("Please log in or sign up to ArtCraft to proceed. This will let you save your work and access all features.")}
         </p>
       );
-      primaryActionBtnText = customPrimaryActionText || "Login / Sign Up";
+      primaryActionBtnText = t(customPrimaryActionText || "Login / Sign Up");
       primaryActionIcon = customPrimaryActionIcon || LogInIcon;
       primaryActionBtnClassName = customPrimaryActionBtnClassName || "";
       break;
     default:
-      messageContent = customMessage || (
+      messageContent = localizedCustomMessage || (
         <p className="text-sm text-white/70">
-          Please complete the required action.
+          {t("Please complete the required action.")}
         </p>
       );
-      primaryActionBtnText = customPrimaryActionText || "Proceed";
+      primaryActionBtnText = t(customPrimaryActionText || "Proceed");
       primaryActionIcon = customPrimaryActionIcon || LogInIcon;
       primaryActionBtnClassName = customPrimaryActionBtnClassName || "";
       break;
   }
 
   const effectiveSecondaryAction = onSecondaryAction || onClose;
-  const effectiveSecondaryActionText = customSecondaryActionText || "Cancel";
+  const effectiveSecondaryActionText = t(customSecondaryActionText || "Cancel");
 
   let modalSpecificClasses = "";
 

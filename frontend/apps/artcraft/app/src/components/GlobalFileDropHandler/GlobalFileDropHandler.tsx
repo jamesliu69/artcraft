@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import { toast } from "react-hot-toast";
 import { BoxIcon, ImagesIcon, Maximize2Icon } from "lucide-react";
 import {
@@ -35,6 +36,7 @@ function isGlobalDropSuppressed(): boolean {
 const isTauri = typeof window !== "undefined" && "__TAURI__" in window;
 
 export function GlobalFileDropHandler() {
+  const { t } = useTranslation();
   const dragCounter = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
   const [modalType, setModalType] = useState<ModalType>(null);
@@ -48,14 +50,17 @@ export function GlobalFileDropHandler() {
   useEffect(() => {
     if (isTauri) {
       const unlisteners: Array<() => void> = [];
+      let disposed = false;
 
       const setup = async () => {
         try {
           const { getCurrentWebviewWindow } = await import("@tauri-apps/api/webviewWindow");
           const { convertFileSrc } = await import("@tauri-apps/api/core");
           const appWindow = getCurrentWebviewWindow();
+          if (disposed) return;
 
           const unlisten = await appWindow.onDragDropEvent(async (event) => {
+            if (disposed) return;
             const payload = event.payload;
 
             if (payload.type === "enter") {
@@ -87,7 +92,9 @@ export function GlobalFileDropHandler() {
               const skippedCount = payload.paths.length - matchingPaths.length;
               if (skippedCount > 0) {
                 toast(
-                  `${skippedCount} file${skippedCount > 1 ? "s" : ""} skipped — unsupported or mixed types`,
+                  t("Unsupported or mixed file types skipped: {count}", {
+                    count: skippedCount,
+                  }),
                   { icon: "⚠️" }
                 );
               }
@@ -103,7 +110,9 @@ export function GlobalFileDropHandler() {
                     return new File([blob], fileName);
                   })
                 );
+                if (disposed) return;
                 await appWindow.setFocus();
+                if (disposed) return;
                 setModalType(modalKind);
                 setPendingFiles(files);
               } catch (err) {
@@ -114,14 +123,21 @@ export function GlobalFileDropHandler() {
             }
           });
 
-          unlisteners.push(unlisten);
+          if (disposed) {
+            unlisten();
+          } else {
+            unlisteners.push(unlisten);
+          }
         } catch (err) {
           console.error("[DragDrop] setup failed:", err);
         }
       };
 
       setup();
-      return () => { unlisteners.forEach((fn) => fn()); };
+      return () => {
+        disposed = true;
+        unlisteners.forEach((fn) => fn());
+      };
 
     } else {
       // HTML5 path (browser dev mode)
@@ -167,7 +183,9 @@ export function GlobalFileDropHandler() {
         const skippedCount = allFiles.length - matchingFiles.length;
         if (skippedCount > 0) {
           toast(
-            `${skippedCount} file${skippedCount > 1 ? "s" : ""} skipped — unsupported or mixed types`,
+            t("Unsupported or mixed file types skipped: {count}", {
+              count: skippedCount,
+            }),
             { icon: "⚠️" }
           );
         }
@@ -186,7 +204,7 @@ export function GlobalFileDropHandler() {
         window.removeEventListener("drop", handleDrop);
       };
     }
-  }, []);
+  }, [t]);
 
   return (
     <>
@@ -194,7 +212,7 @@ export function GlobalFileDropHandler() {
         <div className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center bg-black/70">
           <div className="flex flex-col items-center gap-3 border border-dashed border-white/60 bg-ui-panel px-16 py-12 text-white">
             <Maximize2Icon className="text-3xl opacity-60" />
-            <div className="font-display text-2xl tracking-tight">Drop to Upload</div>
+            <div className="font-display text-2xl tracking-tight">{t("Drop to Upload")}</div>
             <div className="hud-label text-white/50">GLB, PNG, JPG, JPEG, SPZ</div>
           </div>
         </div>
@@ -204,7 +222,7 @@ export function GlobalFileDropHandler() {
         initialFiles={pendingFiles.length > 0 ? pendingFiles : undefined}
         onClose={closeModal}
         onSuccess={(_category: FilterEngineCategories) => closeModal()}
-        title="Upload a 3D Model"
+        title={t("Upload a 3D Model")}
         titleIcon={BoxIcon}
       />
       <UploadModalImage
@@ -212,7 +230,7 @@ export function GlobalFileDropHandler() {
         initialFiles={pendingFiles.length > 0 ? pendingFiles : undefined}
         onClose={closeModal}
         onSuccess={() => closeModal()}
-        title="Upload an Image"
+        title={t("Upload an Image")}
         titleIcon={ImagesIcon}
       />
       <UploadModalSplat
@@ -220,7 +238,7 @@ export function GlobalFileDropHandler() {
         initialFiles={pendingFiles.length > 0 ? pendingFiles : undefined}
         onClose={closeModal}
         onSuccess={() => {}}
-        title="Upload a Splat"
+        title={t("Upload a Splat")}
         titleIcon={BoxIcon}
       />
     </>

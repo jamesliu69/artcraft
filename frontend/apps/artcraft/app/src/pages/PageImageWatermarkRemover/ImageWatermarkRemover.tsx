@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "@storyteller/common";
 import { DropletIcon, ImagesIcon, RotateCwIcon } from "lucide-react";
 import { Button } from "@storyteller/ui-button";
 import { GalleryItem, GalleryModal } from "@storyteller/ui-gallery-modal";
@@ -7,6 +8,7 @@ import { UploadEntryCard } from "../../components/media/UploadEntryCard";
 import toast from "react-hot-toast";
 
 export const ImageWatermarkRemover = () => {
+  const { t } = useTranslation();
   const [imageUrl, setImageUrl] = useState<string>("");
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>(
@@ -56,7 +58,7 @@ export const ImageWatermarkRemover = () => {
   const handleGallerySelect = async (selectedItems: GalleryItem[]) => {
     const item = selectedItems[0];
     if (!item || !item.fullImage) {
-      toast.error("No image selected");
+      toast.error(t("No image selected"));
       return;
     }
 
@@ -80,22 +82,22 @@ export const ImageWatermarkRemover = () => {
 
   const handleRemoveWatermark = async () => {
     if (!imageUrl) {
-      toast.error("Please select an image first");
+      toast.error(t("Please select an image first"));
       return;
     }
 
     setIsProcessing(true);
-    toast.loading("Processing watermark removal...", {
+    toast.loading(t("Processing watermark removal..."), {
       id: "watermark-removal",
     });
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      toast.success("Watermark removal completed!", {
+      toast.success(t("Watermark removal completed!"), {
         id: "watermark-removal",
       });
     } catch (error) {
-      toast.error("Failed to remove watermark", { id: "watermark-removal" });
+      toast.error(t("Failed to remove watermark"), { id: "watermark-removal" });
       console.error("Error removing watermark:", error);
     } finally {
       setIsProcessing(false);
@@ -118,14 +120,14 @@ export const ImageWatermarkRemover = () => {
                 <div className="aspect-video overflow-hidden border border-ui-panel-border bg-ui-panel">
                   <UploadEntryCard
                     icon={DropletIcon}
-                    title="Remove Image Watermark"
-                    description="Erase watermarks from your images seamlessly. Upload your image and get a clean, watermark-free result."
+                    title={t("Remove Image Watermark")}
+                    description={t("Erase watermarks from your images seamlessly. Upload your image and get a clean, watermark-free result.")}
                     accentBackgroundClass="bg-indigo-500/40"
                     accentBorderClass="border-indigo-400/30"
                     accept="image/*"
                     onFilesSelected={handleLocalImageSelect}
-                    primaryLabel="Select Image"
-                    secondaryLabel="Pick from Library"
+                    primaryLabel={t("Select Image")}
+                    secondaryLabel={t("Pick from Library")}
                     secondaryIcon={ImagesIcon}
                     onSecondaryClick={() => setIsGalleryModalOpen(true)}
                   />
@@ -144,13 +146,13 @@ export const ImageWatermarkRemover = () => {
                       }}
                       className="absolute right-3 top-3 z-10 border border-red/50 px-3 py-1.5 text-sm hover:border-red/80 hover:bg-red/80"
                     >
-                      Switch Image
+                      {t("Switch Image")}
                     </Button>
                     <div className="flex min-h-[400px] items-center justify-center p-6">
                       <img
                         ref={imageRef}
                         src={imageUrl}
-                        alt="Selected pic"
+                        alt={t("Selected image")}
                         className="max-h-[70vh] max-w-full object-contain"
                         onLoad={(e) => {
                           const img = e.currentTarget;
@@ -173,7 +175,7 @@ export const ImageWatermarkRemover = () => {
                     className="px-12 py-3 text-lg font-semibold"
                     disabled={isProcessing}
                   >
-                    {isProcessing ? "Processing..." : "Remove Watermark"}
+                    {isProcessing ? t("Processing...") : t("Remove Watermark")}
                   </Button>
                 </div>
 
@@ -183,13 +185,13 @@ export const ImageWatermarkRemover = () => {
                       <ImagesIcon
                         
                         className="text-ui-accent-ink" />
-                      Image Information
+                      {t("Image Information")}
                     </div>
                     {imageDimensions ? (
                       <div className="space-y-3 text-sm">
                         <div className="flex items-center justify-between border-b border-ui-divider py-2">
                           <span className="font-medium text-base-fg/70">
-                            Resolution
+                            {t("Resolution")}
                           </span>
                           <span className="font-mono text-lg font-semibold tabular-nums text-base-fg">
                             {imageDimensions.width} × {imageDimensions.height}
@@ -197,7 +199,7 @@ export const ImageWatermarkRemover = () => {
                         </div>
                         <div className="flex items-center justify-between py-2">
                           <span className="font-medium text-base-fg/70">
-                            Aspect Ratio
+                            {t("Aspect Ratio")}
                           </span>
                           <span className="font-mono text-lg font-semibold tabular-nums text-base-fg">
                             {(
@@ -208,7 +210,7 @@ export const ImageWatermarkRemover = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="text-sm text-base-fg/50">Loading...</div>
+                      <div className="text-sm text-base-fg/50">{t("Loading...")}</div>
                     )}
                   </div>
                 </div>

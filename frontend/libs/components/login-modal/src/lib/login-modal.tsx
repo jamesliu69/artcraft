@@ -9,6 +9,7 @@ import { LoginSuccess } from "./LoginSuccess";
 import { ArtCraftSignUp } from "./artcraft-signup";
 import { getNativeLoginSession, passwordLogin, passwordSignup, isDesktopLoginError } from "./NativeLoginBridge";
 import { useLoginModalStore } from "./useLoginModalStore";
+import { useTranslation } from "@storyteller/common";
 
 // Webapp auth-showcase video (swap by passing `videoUrl`).
 const DEFAULT_SHOWCASE_VIDEO =
@@ -41,6 +42,7 @@ export function LoginModal({
   isSignUp: initialIsSignUp = true,
   videoUrl = DEFAULT_SHOWCASE_VIDEO,
 }: LoginModalProps) {
+  const { t } = useTranslation();
   const { isOpen, recheckTrigger, closeModal } = useLoginModalStore();
   const [isLoading, setIsLoading] = useState(false);
   const [_isLoggedInArtCraft, setIsLoggedInArtCraft] = useState(false);
@@ -152,10 +154,10 @@ export function LoginModal({
       return (
         <div className="flex flex-1 flex-col items-center justify-center px-8 py-16 text-center">
           <h2 className="mb-3 font-display text-3xl leading-[1.05] tracking-tight text-white sm:text-4xl">
-            Thank you for signing in!
+            {t("Thank you for signing in!")}
           </h2>
           <p className="mb-8 text-sm leading-relaxed text-white/60">
-            You're all set to start creating amazing content.
+            {t("You're all set to start creating amazing content.")}
           </p>
           <Button
             variant="primary"
@@ -164,7 +166,7 @@ export function LoginModal({
             iconFlip={true}
             className="h-10 rounded-[3px] bg-white px-5 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-black shadow-none hover:bg-white/90"
           >
-            Get Started
+            {t("Get Started")}
           </Button>
         </div>
       );
@@ -174,11 +176,10 @@ export function LoginModal({
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-8 py-16 text-center">
         <h2 className="mb-3 font-display text-3xl leading-[1.05] tracking-tight text-white sm:text-4xl">
-          Join our <span className="font-serif-italic">community.</span>
+          {t("Join our")} <span className="font-serif-italic">{t("community.")}</span>
         </h2>
         <p className="mb-8 max-w-md text-sm leading-relaxed text-white/60">
-          Connect with other creators, share your work, and get the latest
-          updates in our Discord community.
+          {t("Connect with other creators, share your work, and get the latest updates in our Discord community.")}
         </p>
         <div className="flex gap-3">
           <Button
@@ -189,7 +190,7 @@ export function LoginModal({
               setShowSuccess(true);
             }}
           >
-            Skip for now
+            {t("Skip for now")}
           </Button>
           <Button
             variant="primary"
@@ -197,7 +198,7 @@ export function LoginModal({
             icon={DiscordIcon}
             className="h-10 rounded-[3px] bg-[#5865F2] px-4 font-mono text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-none hover:bg-[#6a76ff]"
           >
-            Join Discord
+            {t("Join Discord")}
           </Button>
         </div>
       </div>
@@ -254,18 +255,18 @@ export function LoginModal({
                             />
                             <h1 className="mb-3 text-balance font-display text-3xl leading-[1.05] tracking-tight sm:text-4xl">
                               {isSignUp ? (
-                                "Create your account"
+                              t("Create your account")
                               ) : (
                                 <>
-                                  Welcome{" "}
-                                  <span className="font-serif-italic">back.</span>
+                                  {t("Welcome")} {" "}
+                                  <span className="font-serif-italic">{t("back.")}</span>
                                 </>
                               )}
                             </h1>
                             <p className="text-sm leading-relaxed text-white/60">
                               {isSignUp
-                                ? "Sign up to start creating with ArtCraft"
-                                : "Log in to your creative workspace."}
+                                ? t("Sign up to start creating with ArtCraft")
+                                : t("Log in to your creative workspace.")}
                             </p>
                           </div>
 
@@ -288,8 +289,7 @@ export function LoginModal({
                       </div>
 
                       <div className="px-6 pb-6 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-white/25 sm:px-10">
-                        &copy; {new Date().getFullYear()} ArtCraft. All rights
-                        reserved.
+                        &copy; {new Date().getFullYear()} ArtCraft. {t("All rights reserved.")}
                       </div>
                     </div>
 
@@ -318,6 +318,7 @@ export function LoginModal({
 // Right-pane video showcase — muted background video cropped to cover the pane,
 // with a legibility gradient + caption. Mirrors the webapp auth-showcase.
 function LoginShowcase({ videoUrl }: { videoUrl: string }) {
+  const { t } = useTranslation();
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#1e1f22]">
       <video
@@ -337,13 +338,13 @@ function LoginShowcase({ videoUrl }: { videoUrl: string }) {
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-8">
         <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-white/70">
-          One of the cheapest
+          {t("One of the cheapest")}
         </p>
         <h2 className="text-2xl font-bold leading-tight">
-          Seedance 2.0 Video Generation
+          Seedance 2.0 {t("Video Generation")}
         </h2>
         <p className="mt-1 max-w-sm text-sm text-white/70">
-          Generate jaw-dropping AI videos with Seedance 2.0.
+          {t("Generate jaw-dropping AI videos with Seedance 2.0.")}
         </p>
       </div>
     </div>

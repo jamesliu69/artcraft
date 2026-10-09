@@ -46,8 +46,18 @@ import { useTabStore } from "~/pages/Stores/TabState";
 
 export const SHARE_URL_BASE = "https://getartcraft.com/media/";
 
+type Translate = (
+  source: string,
+  params?: Record<string, string | number>,
+) => string;
+
 /** Download a media file, prompting for a location when configured to. */
-export async function downloadMediaFileToDisk(url: string, mediaClass?: string, model?: string) {
+export async function downloadMediaFileToDisk(
+  url: string,
+  mediaClass: string | undefined,
+  model: string | undefined,
+  t: Translate,
+) {
   try {
     const chosenPath = await promptDownloadLocationIfNeeded(url, model);
     if (chosenPath === null) {
@@ -60,9 +70,17 @@ export async function downloadMediaFileToDisk(url: string, mediaClass?: string, 
       await DownloadUrl(url, { model });
     }
     if (mediaClass === FilterMediaClasses.DIMENSIONAL) {
-      toast.success(`Downloaded 3D model`);
+      toast.success(t("Downloaded 3D model"));
     } else {
-      toast.success(`Downloaded ${mediaClass}`);
+      const mediaType =
+        mediaClass === FilterMediaClasses.VIDEO
+          ? t("video")
+          : mediaClass === FilterMediaClasses.AUDIO
+            ? t("audio")
+            : mediaClass === FilterMediaClasses.IMAGE
+              ? t("image")
+              : t("file");
+      toast.success(t("Downloaded {mediaType}", { mediaType }));
     }
   } catch (error) {
     console.error(">>> Failed to download file:", error);
@@ -79,6 +97,7 @@ export async function downloadMediaFileToDisk(url: string, mediaClass?: string, 
  */
 export async function downloadMediaFilesToFolder(
   items: GalleryItem[],
+  t: Translate,
 ): Promise<boolean> {
   const downloadable = items.filter(
     (it): it is GalleryItem & { fullImage: string } => !!it.fullImage,
@@ -91,11 +110,19 @@ export async function downloadMediaFilesToFolder(
     return false;
   }
 
-  const toastId = toast.loading(`Saving 1 of ${downloadable.length}…`);
+  const toastId = toast.loading(
+    t("Saving {current} of {total}…", {
+      current: 1,
+      total: downloadable.length,
+    }),
+  );
   let failedCount = 0;
   for (let i = 0; i < downloadable.length; i++) {
     const item = downloadable[i];
-    toast.loading(`Saving ${i + 1} of ${downloadable.length}…`, {
+    toast.loading(t("Saving {current} of {total}…", {
+      current: i + 1,
+      total: downloadable.length,
+    }), {
       id: toastId,
     });
     try {
@@ -112,16 +139,24 @@ export async function downloadMediaFilesToFolder(
 
   const saved = downloadable.length - failedCount;
   if (failedCount === 0) {
-    toast.success(`Saved ${saved} ${saved === 1 ? "file" : "files"}`, {
+    toast.success(
+      saved === 1
+        ? t("Saved {count} file", { count: saved })
+        : t("Saved {count} files", { count: saved }),
+      {
       id: toastId,
-    });
+      },
+    );
   } else if (saved > 0) {
     toast.error(
-      `${failedCount} of ${downloadable.length} files failed to save`,
+      t("{failedCount} of {total} files failed to save", {
+        failedCount,
+        total: downloadable.length,
+      }),
       { id: toastId },
     );
   } else {
-    toast.error("Could not save the selected files.", { id: toastId });
+    toast.error(t("Could not save the selected files."), { id: toastId });
   }
   return saved > 0;
 }
@@ -147,13 +182,16 @@ export async function applyMakeVideoFromImage(url: string, mediaToken?: string) 
 }
 
 /** Copy a public share link for the media token. Returns success. */
-export async function copyShareLink(mediaToken: string): Promise<boolean> {
+export async function copyShareLink(
+  mediaToken: string,
+  t: Translate,
+): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(`${SHARE_URL_BASE}${mediaToken}`);
-    toast.success("Share link copied");
+    toast.success(t("Share link copied"));
     return true;
   } catch {
-    toast.error("Unable to copy link");
+    toast.error(t("Unable to copy link"));
     return false;
   }
 }
@@ -311,6 +349,7 @@ export function applyRecreateFromPromptData(data: {
 export async function applyRecreateFromPromptToken(
   promptToken: string,
   mediaClass: "image" | "video",
+  t: Translate,
 ) {
   let promptData: Prompts | undefined = getCachedPrompt(promptToken);
   if (!promptData) {
@@ -324,7 +363,7 @@ export async function applyRecreateFromPromptToken(
     }
   }
   if (!promptData) {
-    toast.error("Could not load the original prompt.");
+    toast.error(t("Could not load the original prompt."));
     return;
   }
   applyRecreateFromPromptData({ promptData, mediaClass });

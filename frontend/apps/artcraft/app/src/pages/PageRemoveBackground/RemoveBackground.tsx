@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useTranslation } from "@storyteller/common";
 import { DownloadIcon, EyeIcon, ImagesIcon, PlusIcon, UploadIcon, WandSparklesIcon } from "lucide-react";
 import { Button } from "@storyteller/ui-button";
 import { GalleryItem, GalleryModal } from "@storyteller/ui-gallery-modal";
@@ -34,6 +35,7 @@ const convertFileToBase64 = (file: File): Promise<string> => {
 };
 
 export const RemoveBackground = () => {
+  const { t } = useTranslation();
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>(
     [],
@@ -139,7 +141,7 @@ export const RemoveBackground = () => {
         });
       } catch (error) {
         console.error("Error processing external image:", error);
-        toast.error("Failed to process image");
+        toast.error(t("Failed to process image"));
         setIsLoadingImage(false);
         setIsProcessing(false);
         setPendingJobId(null);
@@ -157,24 +159,25 @@ export const RemoveBackground = () => {
     setIsProcessing,
     setPendingJobId,
     setImageDimensions,
+    t,
   ]);
 
   const addMenuItems: PopoverItem[] = useMemo(
     () => [
       {
-        label: "Upload Image",
+        label: t("Upload Image"),
         selected: false,
         icon: <UploadIcon  className="h-4 w-4" />,
         action: "upload",
       },
       {
-        label: "Choose from Library",
+        label: t("Choose from Library"),
         selected: false,
         icon: <ImagesIcon  className="h-4 w-4" />,
         action: "library",
       },
     ],
-    [],
+    [t],
   );
 
   const handleAddMenuSelect = useCallback((item: PopoverItem) => {
@@ -266,7 +269,7 @@ export const RemoveBackground = () => {
       addImage(newImage);
       setIsProcessing(false);
       setPendingJobId(null);
-      toast.success("Saved to Library");
+      toast.success(t("Saved to Library"));
 
       setImageDimensions({
         width: originalImg.naturalWidth,
@@ -279,7 +282,7 @@ export const RemoveBackground = () => {
       addImage(newImage);
       setIsProcessing(false);
       setPendingJobId(null);
-      toast.success("Saved to Library");
+      toast.success(t("Saved to Library"));
     }
   });
 
@@ -333,7 +336,7 @@ export const RemoveBackground = () => {
         });
       } catch (error) {
         console.error("Error processing image:", error);
-        toast.error("Failed to process image");
+        toast.error(t("Failed to process image"));
         setIsLoadingImage(false);
         setIsProcessing(false);
         setPendingJobId(null);
@@ -346,6 +349,7 @@ export const RemoveBackground = () => {
       setIsProcessing,
       setPendingJobId,
       setImageDimensions,
+      t,
     ],
   );
 
@@ -360,7 +364,7 @@ export const RemoveBackground = () => {
     async (selectedItems: GalleryItem[]) => {
       const item = selectedItems[0];
       if (!item || !item.fullImage) {
-        toast.error("No image selected");
+        toast.error(t("No image selected"));
         return;
       }
 
@@ -405,7 +409,7 @@ export const RemoveBackground = () => {
         });
       } catch (error) {
         console.error("Error processing gallery image:", error);
-        toast.error("Failed to process image");
+        toast.error(t("Failed to process image"));
         setIsLoadingImage(false);
         setIsProcessing(false);
         setPendingJobId(null);
@@ -418,23 +422,24 @@ export const RemoveBackground = () => {
       setIsProcessing,
       setPendingJobId,
       setImageDimensions,
+      t,
     ],
   );
 
   const handleDownload = useCallback(async () => {
     const currentActiveImage = getActiveImage();
     if (!currentActiveImage) {
-      toast.error("No image to download");
+      toast.error(t("No image to download"));
       return;
     }
     try {
       await downloadFileFromUrl(currentActiveImage.processedUrl);
-      toast.success("Image saved to Downloads folder");
+      toast.success(t("Image saved to Downloads folder"));
     } catch (error) {
       console.error("Download failed:", error);
-      toast.error("Failed to download image");
+      toast.error(t("Failed to download image"));
     }
-  }, [getActiveImage]);
+  }, [getActiveImage, t]);
 
   const handleCompareMouseDown = useCallback(() => {
     setIsHoldingCompare(true);
@@ -551,14 +556,14 @@ export const RemoveBackground = () => {
                 <div className="relative aspect-video overflow-hidden border border-ui-panel-border bg-ui-background">
                   <UploadEntryCard
                     icon={WandSparklesIcon}
-                    title="Remove Background"
-                    description="Instantly remove backgrounds from your images with AI-powered precision."
+                    title={t("Remove Background")}
+                    description={t("Instantly remove backgrounds from your images with AI-powered precision.")}
                     accentBackgroundClass="bg-violet-500/40"
                     accentBorderClass="border-violet-400/30"
                     accept="image/*"
                     onFilesSelected={handleLocalImageSelect}
-                    primaryLabel="Select Image"
-                    secondaryLabel="Pick from Library"
+                    primaryLabel={t("Select Image")}
+                    secondaryLabel={t("Pick from Library")}
                     secondaryIcon={ImagesIcon}
                     onSecondaryClick={handleOpenGallery}
                     disabled={isLoadingImage}
@@ -589,8 +594,8 @@ export const RemoveBackground = () => {
                       )}
                     >
                       {isHoldingCompare
-                        ? "Showing Original"
-                        : "Hold to Compare"}
+                        ? t("Showing Original")
+                        : t("Hold to Compare")}
                     </Button>
                     <Button
                       variant="primary"
@@ -618,7 +623,7 @@ export const RemoveBackground = () => {
                         {currentOriginalUrl && (
                           <img
                             src={currentOriginalUrl}
-                            alt="Processing"
+                            alt={t("Processing")}
                             className="absolute inset-0 h-full w-full object-contain opacity-30"
                           />
                         )}
@@ -655,7 +660,7 @@ export const RemoveBackground = () => {
 
                         <img
                           src={activeImage.processedUrl}
-                          alt="Background Removed"
+                          alt={t("Background Removed")}
                           className="absolute inset-0 h-full w-full object-contain"
                         />
 
@@ -672,7 +677,7 @@ export const RemoveBackground = () => {
                         >
                           <img
                             src={activeImage.originalUrl}
-                            alt="Original"
+                            alt={t("Original")}
                             className="absolute inset-0 h-full w-full object-contain"
                           />
                         </div>
@@ -732,7 +737,7 @@ export const RemoveBackground = () => {
                     >
                       <img
                         src={img.processedUrl}
-                        alt="Processed"
+                        alt={t("Processed")}
                         className="h-full w-full object-cover"
                       />
                     </button>

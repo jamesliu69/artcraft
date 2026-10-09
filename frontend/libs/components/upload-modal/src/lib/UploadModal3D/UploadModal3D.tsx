@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import { Checkbox } from "@storyteller/ui-checkbox";
 import { LoadingDots } from "@storyteller/ui-loading";
 import { Modal } from "@storyteller/ui-modal";
@@ -42,6 +43,7 @@ interface Props {
 const objectFileTypes = Object.values(OBJECT_FILE_TYPE);
 
 export function UploadModal3D(props: Props) {
+  const { t } = useTranslation();
   const {
     isOpen,
     onClose,
@@ -118,7 +120,7 @@ export function UploadModal3D(props: Props) {
                   setIsCharacter(e.target.checked);
                   if (e.target.checked) setIsAnimation(false);
                 }}
-                label="Upload as Character"
+                label={t("Upload as Character")}
               />
               <Checkbox
                 id="upload-as-animation"
@@ -128,7 +130,7 @@ export function UploadModal3D(props: Props) {
                   setIsAnimation(e.target.checked);
                   if (e.target.checked) setIsCharacter(false);
                 }}
-                label="Upload as Animation"
+                label={t("Upload as Animation")}
               />
             </div>
             <UploadFiles3D
@@ -162,8 +164,11 @@ export function UploadModal3D(props: Props) {
             <LoadingDots className="mb-1 bg-transparent" />
             <div className="w-100 text-center opacity-50">
               {p && p.total > 1
-                ? `Uploading ${p.current} / ${p.total}...`
-                : "Uploading..."}
+                ? t("Uploading {current} / {total}...", {
+                    current: p.current,
+                    total: p.total,
+                  })
+                : t("Uploading...")}
             </div>
           </>
         );
@@ -171,7 +176,7 @@ export function UploadModal3D(props: Props) {
       case UploaderStates.success: {
         return (
           <UploadSuccess
-            title={isAnimation ? "Animation" : "3D model"}
+            title={t(isAnimation ? "Animation" : "3D model")}
             onOk={() => {
               // Category-scoped opens come from a library panel that shows
               // the upload itself — don't pop My Library over it.
@@ -204,7 +209,7 @@ export function UploadModal3D(props: Props) {
             onRetry={() => {
               resetModalState();
             }}
-            type={"Thumbnail"}
+            type={t("Thumbnail")}
             errorMessage={uploaderState.errorMessage}
           />
         );
@@ -217,7 +222,7 @@ export function UploadModal3D(props: Props) {
       isOpen={isOpen}
       onClose={onClose}
       titleIcon={titleIcon}
-      title={title}
+      title={t(title)}
       className="max-w-xl"
       showClose={true}
     >

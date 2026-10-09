@@ -8,6 +8,7 @@ import {
 } from "@storyteller/api";
 import { toast } from "@storyteller/ui-toaster";
 import { TagChipInput, type TagSuggestion } from "./TagChipInput";
+import { useTranslation } from "@storyteller/common";
 
 export interface TagsSectionProps {
   mediaToken?: string | null;
@@ -76,6 +77,9 @@ export function TagsSection({
   suggestions,
   onSaved,
 }: TagsSectionProps) {
+  const { t } = useTranslation();
+  const translateRef = useRef(t);
+  translateRef.current = t;
   const tagsApi = useMemo(() => new TagsApi(), []);
 
   // Session: prop wins; otherwise resolve (and cache) it ourselves.
@@ -189,7 +193,7 @@ export function TagsSection({
           if (!pendingRef.current) setTags(res.data.tags);
         }
       } else {
-        toast.error(res.errorMessage || "Failed to save tags.");
+        toast.error(res.errorMessage || translateRef.current("Failed to save tags."));
         if (mediaTokenRef.current === token) {
           pendingRef.current = null;
           setTags(lastAckedRef.current);
@@ -238,14 +242,14 @@ export function TagsSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">
           <TagIcon />
-          <span>Tags</span>
+          <span>{t("Tags")}</span>
         </div>
         {isOwner && tags.length >= 2 && (
           <button
             onClick={handleClear}
             className="text-xs text-base-fg/60 hover:text-base-fg transition-colors"
           >
-            Clear
+            {t("Clear")}
           </button>
         )}
       </div>

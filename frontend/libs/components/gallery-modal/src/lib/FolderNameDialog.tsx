@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Modal } from "@storyteller/ui-modal";
 import { Button } from "@storyteller/ui-button";
+import { useTranslation } from "@storyteller/common";
 
 interface FolderNameDialogProps {
   isOpen: boolean;
@@ -8,6 +9,8 @@ interface FolderNameDialogProps {
   /** Small grey line under the title (e.g. "in My Library"). */
   subtitle?: string;
   initialValue?: string;
+  /** Translate a fixed UI default when the dialog opens; user-edited names stay raw. */
+  initialValueTranslationKey?: string;
   confirmLabel: string;
   onConfirm: (name: string) => void;
   onClose: () => void;
@@ -23,19 +26,27 @@ export const FolderNameDialog: React.FC<FolderNameDialogProps> = ({
   title,
   subtitle,
   initialValue = "",
+  initialValueTranslationKey,
   confirmLabel,
   onConfirm,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    if (!isOpen) return;
-    setValue(initialValue);
-    const t = setTimeout(() => inputRef.current?.select(), 60);
-    return () => clearTimeout(t);
-  }, [isOpen, initialValue]);
+    if (!isOpen) {
+      wasOpenRef.current = false;
+      return;
+    }
+    if (wasOpenRef.current) return;
+    wasOpenRef.current = true;
+    setValue(initialValueTranslationKey ? t(initialValueTranslationKey) : initialValue);
+    const timeout = setTimeout(() => inputRef.current?.select(), 60);
+    return () => clearTimeout(timeout);
+  }, [isOpen, initialValue, initialValueTranslationKey, t]);
 
   const submit = () => {
     const name = value.trim();
@@ -57,7 +68,7 @@ export const FolderNameDialog: React.FC<FolderNameDialogProps> = ({
         <input
           ref={inputRef}
           type="text"
-          aria-label="Folder name"
+          aria-label={t("Folder name")}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
@@ -72,7 +83,7 @@ export const FolderNameDialog: React.FC<FolderNameDialogProps> = ({
             onClick={onClose}
             className="px-3 py-1.5 text-[11px]"
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             onClick={submit}

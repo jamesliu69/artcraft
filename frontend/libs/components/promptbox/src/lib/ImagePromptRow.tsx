@@ -19,7 +19,7 @@ import {
 } from "./common/imagePreview";
 import { toast } from "@storyteller/ui-toaster";
 import { twMerge } from "tailwind-merge";
-import { UploaderStates } from "@storyteller/common";
+import { UploaderStates, useTranslation } from "@storyteller/common";
 import {
   AUDIO_FILE_ACCEPT,
   AUDIO_FILE_TYPE_ERROR,
@@ -85,6 +85,7 @@ const AudioRefTile = ({
   index: number;
   onRemove: (id: string) => void;
 }) => {
+  const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -121,6 +122,8 @@ const AudioRefTile = ({
   return (
     <div className="glass relative aspect-square overflow-hidden rounded-[3px] w-14 border-2 border-white/30 hover:border-white/80 transition-all group cursor-pointer flex items-center justify-center">
       <button
+        type="button"
+        aria-label={isPlaying ? t("Stop") : t("Play")}
         onClick={handleTogglePlay}
         className="flex items-center justify-center w-full h-full"
       >
@@ -138,6 +141,8 @@ const AudioRefTile = ({
         #{index + 1} · {audio.duration}s
       </div>
       <button
+        type="button"
+        aria-label={t("Remove audio")}
         onClick={(e) => {
           e.stopPropagation();
           if (audioRef.current) {
@@ -182,6 +187,7 @@ export const ImagePromptRow = ({
   maxAudioRefDuration = 15,
   uploadAudio,
 }: ImagePromptRowProps) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoFileInputRef = useRef<HTMLInputElement>(null);
   const audioFileInputRef = useRef<HTMLInputElement>(null);
@@ -283,7 +289,7 @@ export const ImagePromptRow = ({
       >
         <img
           src={image.url}
-          alt="Reference"
+          alt={t("Reference")}
           className="h-full w-full object-cover"
         />
         {isReferenceMode && (
@@ -292,6 +298,8 @@ export const ImagePromptRow = ({
           </div>
         )}
         <button
+          type="button"
+          aria-label={t("Remove reference")}
           onClick={(e) => {
             e.stopPropagation();
             handleRemoveReference(image.id);
@@ -426,7 +434,10 @@ export const ImagePromptRow = ({
     const availableSlots = Math.max(0, maxVideoCount - baseVideos.length);
     if (availableSlots <= 0) {
       toast.error(
-        `Max ${maxVideoCount} videos / ${maxVideoRefDuration}s total`,
+        t("Max {count} videos / {seconds}s total", {
+          count: maxVideoCount,
+          seconds: maxVideoRefDuration,
+        }),
         { id: "video-ref-limit" },
       );
       if (videoFileInputRef.current) videoFileInputRef.current.value = "";
@@ -442,7 +453,9 @@ export const ImagePromptRow = ({
 
       if (currentTotal + duration > maxVideoRefDuration) {
         toast.error(
-          `Total video duration cannot exceed ${maxVideoRefDuration}s`,
+          t("Total video duration cannot exceed {seconds}s", {
+            seconds: maxVideoRefDuration,
+          }),
           { id: "video-ref-limit" },
         );
         break;
@@ -474,7 +487,7 @@ export const ImagePromptRow = ({
               newState.status === UploaderStates.imageCreateError
             ) {
               setUploadingVideo(null);
-              toast.error("Failed to upload video. Please upload an MP4 file.");
+              toast.error(t("Failed to upload video. Please upload an MP4 file."));
             }
           },
         });
@@ -537,7 +550,7 @@ export const ImagePromptRow = ({
 
     const audioFiles = files.filter(isAudioFile);
     if (audioFiles.length < files.length) {
-      toast.error(AUDIO_FILE_TYPE_ERROR);
+      toast.error(t(AUDIO_FILE_TYPE_ERROR));
     }
 
     const availableSlots = Math.max(0, maxAudioCount - referenceAudios.length);
@@ -557,7 +570,9 @@ export const ImagePromptRow = ({
 
       if (currentTotal + duration > maxAudioRefDuration) {
         toast.error(
-          `Total audio duration cannot exceed ${maxAudioRefDuration}s`,
+          t("Total audio duration cannot exceed {seconds}s", {
+            seconds: maxAudioRefDuration,
+          }),
         );
         break;
       }
@@ -887,9 +902,9 @@ export const ImagePromptRow = ({
                   <span className="text-sm font-medium flex items-center gap-1.5">
                     {isVideo
                       ? isReferenceMode
-                        ? "Image Ref"
-                        : "Start Frame"
-                      : "Image Prompts"}
+                      ? t("Image Ref")
+                      : t("Start Frame")
+                    : t("Image Prompts")}
                     {(!isVideo || isReferenceMode) && (
                       <span className="text-base-fg/60 font-semibold">
                         ({usedSlotsRender}/{maxImagePromptCount})
@@ -900,9 +915,9 @@ export const ImagePromptRow = ({
                 <span className="text-[13px] text-base-fg/60">
                   {isVideo
                     ? isReferenceMode
-                      ? "Upload images"
-                      : "Animate an image"
-                    : "Use the elements of an image"}
+                    ? t("Upload images")
+                    : t("Animate an image")
+                  : t("Use the elements of an image")}
                 </span>
               </div>
 
@@ -941,7 +956,7 @@ export const ImagePromptRow = ({
                       >
                         <img
                           src={image.url}
-                          alt="Reference"
+                          alt={t("Reference")}
                           className="h-full w-full object-cover"
                         />
                         {isReferenceMode && (
@@ -950,6 +965,8 @@ export const ImagePromptRow = ({
                           </div>
                         )}
                         <button
+                          type="button"
+                          aria-label={t("Remove reference")}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleRemoveReference(image.id);
@@ -977,7 +994,7 @@ export const ImagePromptRow = ({
                         <div className="absolute inset-0">
                           <img
                             src={previewUrl}
-                            alt="Uploading preview"
+                            alt={t("Uploading preview")}
                             className="h-full w-full object-cover blur-sm"
                           />
                         </div>
@@ -1006,7 +1023,7 @@ export const ImagePromptRow = ({
                             icon={PlusIcon}
                             className="w-full"
                           >
-                            Upload
+                            {t("Upload")}
                           </Button>
                         )}
                         <Button
@@ -1018,7 +1035,7 @@ export const ImagePromptRow = ({
                           icon={ImagesIcon}
                           className="w-full bg-base-fg/10 hover:bg-base-fg/20"
                         >
-                          Pick from library
+                          {t("Pick from library")}
                         </Button>
                       </div>
                     }
@@ -1050,14 +1067,14 @@ export const ImagePromptRow = ({
                     <div className="flex items-center gap-2 opacity-90 text-base-fg">
                       <ImageIcon  className="h-3.5 w-3.5" />
                       <span className="text-sm font-medium flex items-center gap-1.5">
-                        End Frame{" "}
+                        {t("End Frame")} {" "}
                         <span className="text-base-fg/60 text-xs">
-                          (optional)
+                          {t("(optional)")}
                         </span>
                       </span>
                     </div>
                     <span className="text-[13px] text-base-fg/60">
-                      How video ends
+                      {t("How video ends")}
                     </span>
                   </div>
                 </div>
@@ -1069,10 +1086,12 @@ export const ImagePromptRow = ({
                     >
                       <img
                         src={endFrameImage.url}
-                        alt="Ending Frame"
+                        alt={t("Ending Frame")}
                         className="h-full w-full object-cover"
                       />
                       <button
+                        type="button"
+                        aria-label={t("Remove reference")}
                         onClick={(e) => {
                           e.stopPropagation();
                           setEndFrameImage?.(undefined);
@@ -1090,7 +1109,7 @@ export const ImagePromptRow = ({
                         <div className="absolute inset-0">
                           <img
                             src={uploadingEnd.previewUrl}
-                            alt="Uploading preview"
+                            alt={t("Uploading preview")}
                             className="h-full w-full object-cover blur-sm"
                           />
                         </div>
@@ -1117,7 +1136,7 @@ export const ImagePromptRow = ({
                               icon={PlusIcon}
                               className="w-full"
                             >
-                              Upload
+                              {t("Upload")}
                             </Button>
                           )}
                           <Button
@@ -1129,7 +1148,7 @@ export const ImagePromptRow = ({
                             icon={ImagesIcon}
                             className="w-full bg-base-fg/10 hover:bg-base-fg/20"
                           >
-                            Pick from library
+                            {t("Pick from library")}
                           </Button>
                         </div>
                       }
@@ -1163,14 +1182,17 @@ export const ImagePromptRow = ({
                   <div className="flex items-center gap-2 opacity-90 text-base-fg">
                     <VideoIcon  className="h-3.5 w-3.5" />
                     <span className="text-sm font-medium flex items-center gap-1.5">
-                      Video Ref{" "}
+                      {t("Video Ref")} {" "}
                       <span className="text-base-fg/60 font-semibold">
                         ({referenceVideos.length}/{maxVideoCount})
                       </span>
                     </span>
                   </div>
                   <span className="text-[13px] text-base-fg/60">
-                    {totalVideoDuration}s / {maxVideoRefDuration}s max
+                    {t("Total duration: {current}s / {max}s max", {
+                      current: totalVideoDuration,
+                      max: maxVideoRefDuration,
+                    })}
                   </span>
                 </div>
                 <div className="flex gap-2 items-center">
@@ -1189,6 +1211,8 @@ export const ImagePromptRow = ({
                         {video.duration}s
                       </div>
                       <button
+                        type="button"
+                        aria-label={t("Remove video")}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRemoveVideo(video.id);
@@ -1234,7 +1258,7 @@ export const ImagePromptRow = ({
                               icon={PlusIcon}
                               className="w-full"
                             >
-                              Upload
+                              {t("Upload")}
                             </Button>
                             <Button
                               variant="action"
@@ -1245,7 +1269,7 @@ export const ImagePromptRow = ({
                               icon={ImagesIcon}
                               className="w-full bg-base-fg/10 hover:bg-base-fg/20"
                             >
-                              Pick from library
+                              {t("Pick from library")}
                             </Button>
                           </div>
                         }
@@ -1271,14 +1295,17 @@ export const ImagePromptRow = ({
                     <div className="flex items-center gap-2 opacity-90 text-base-fg">
                       <MusicIcon  className="h-3.5 w-3.5" />
                       <span className="text-sm font-medium flex items-center gap-1.5">
-                        Audio Ref{" "}
+                        {t("Audio Ref")} {" "}
                         <span className="text-base-fg/60 font-semibold">
                           ({referenceAudios.length}/{maxAudioCount})
                         </span>
                       </span>
                     </div>
                     <span className="text-[13px] text-base-fg/60">
-                      {totalAudioDuration}s / {maxAudioRefDuration}s max
+                      {t("Total duration: {current}s / {max}s max", {
+                        current: totalAudioDuration,
+                        max: maxAudioRefDuration,
+                      })}
                     </span>
                   </div>
                 </div>
@@ -1322,6 +1349,7 @@ export const ImagePromptRow = ({
             <Button
               variant="action"
               icon={Trash2Icon}
+              aria-label={t("Clear all references")}
               className="h-8 w-3"
               onClick={() => {
                 setReferenceImages([]);

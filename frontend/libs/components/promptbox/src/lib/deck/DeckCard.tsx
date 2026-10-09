@@ -9,6 +9,7 @@ import { BoxIcon, ImagesIcon, LoaderCircleIcon, MusicIcon, PlayIcon, SquareIcon,
 import { DynamicIcon } from "@storyteller/icons";
 import { Modal } from "@storyteller/ui-modal";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "@storyteller/common";
 import { DeckAddAction, DeckItem } from "./deckTypes";
 
 /**
@@ -49,6 +50,7 @@ export const DeckCard = ({
   className,
   style,
 }: DeckCardProps) => {
+  const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -169,6 +171,8 @@ export const DeckCard = ({
 
       {onRemove && !item.uploading && !hideHoverChrome && (
         <button
+          type="button"
+          aria-label={t("Remove reference")}
           onClick={(e) => {
             e.stopPropagation();
             stopAudio();
@@ -197,6 +201,7 @@ export const DeckAddMenu = ({
   actions: DeckAddAction[];
   groupHints?: Record<string, string>;
 }) => {
+  const { t } = useTranslation();
   const groups: { name?: string; actions: DeckAddAction[] }[] = [];
   for (const action of actions) {
     const last = groups[groups.length - 1];
@@ -221,7 +226,7 @@ export const DeckAddMenu = ({
           {showHeaders && group.name && (
             <div className="flex items-center justify-between gap-3 px-2.5 pb-0.5 pt-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-base-fg/40">
-                {group.name}
+                {group.name ? t(group.name) : null}
               </span>
               {groupHints?.[group.name] && (
                 <span className="text-[10px] font-medium tabular-nums text-base-fg/40">

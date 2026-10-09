@@ -1,14 +1,16 @@
 import { SquareCheckIcon } from "lucide-react";
 import { Tooltip } from "@storyteller/ui-tooltip";
 import { useGallerySelectionStore } from "./gallery-selection-store";
+import { useTranslation } from "@storyteller/common";
 
 // TopBar toggle that puts the create-page gallery into multi-select mode.
 // Sits next to GalleryViewToggle; the mode is shared with the gallery via
 // useGallerySelectionStore.
 export function GallerySelectToggle() {
+  const { t } = useTranslation();
   const active = useGallerySelectionStore((s) => s.active);
   const setActive = useGallerySelectionStore((s) => s.setActive);
-  const label = active ? "Exit selection" : "Select items";
+  const label = active ? t("Exit selection") : t("Select items");
 
   return (
     <div className="flex items-center rounded-[3px] border border-white/[0.08] bg-white/[0.04] p-0.5">

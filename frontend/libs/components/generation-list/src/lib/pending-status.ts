@@ -8,12 +8,13 @@ export interface PendingStatus {
 export function derivePendingStatus(
   progress?: number,
   estimatedTimeLeftMs?: number,
+  t: (source: string) => string = (source) => source,
 ): PendingStatus {
   const progressPercent =
     progress != null ? Math.max(0, Math.min(100, Math.round(progress))) : null;
   const isAlmostDone = progress != null && progress >= 95;
   const timeLabel = isAlmostDone
-    ? "Almost done..."
+    ? t("Almost done...")
     : estimatedTimeLeftMs != null && estimatedTimeLeftMs > 0
       ? formatTimeLeft(estimatedTimeLeftMs)
       : null;

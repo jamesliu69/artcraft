@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "@storyteller/common";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import { ListDropdown } from "@storyteller/ui-list-dropdown";
 import { Button } from "@storyteller/ui-button";
@@ -44,6 +45,7 @@ export const UploadFilesSplat = ({
   onClose,
   onUploadProgress,
 }: Props) => {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement | undefined>(undefined);
   const rendererRef = useRef<WebGLRenderer | null>(null);
   const cameraRef = useRef<PerspectiveCamera | null>(null);
@@ -327,7 +329,7 @@ export const UploadFilesSplat = ({
       />
 
       {selectionError && (
-        <h6 className="z-10 text-red">{selectionError}</h6>
+        <h6 className="z-10 text-red">{t(selectionError)}</h6>
       )}
 
       {isMulti ? (
@@ -353,7 +355,7 @@ export const UploadFilesSplat = ({
                         e.stopPropagation();
                         removeFile(i);
                       }}
-                      title="Remove"
+                      title={t("Remove")}
                     >
                       <XIcon />
                     </button>
@@ -377,7 +379,7 @@ export const UploadFilesSplat = ({
                           e.stopPropagation();
                           retrySingleFile(i);
                         }}
-                        title="Retry"
+                        title={t("Retry")}
                       >
                         <RotateCwIcon />
                       </button>
@@ -406,7 +408,7 @@ export const UploadFilesSplat = ({
               {!currentFile && (
                 <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 flex w-full items-center justify-center gap-2.5 text-center opacity-50">
                   <BoxIcon />
-                  Your model preview will appear here
+                  {t("Your model preview will appear here")}
                 </h6>
               )}
               {previewStatus.type.includes("Error") && (
@@ -452,7 +454,7 @@ export const UploadFilesSplat = ({
           {!currentFile && (
             <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 flex w-full items-center justify-center gap-2.5 text-center opacity-50">
               <BoxIcon />
-              Your model preview will appear here
+              {t("Your model preview will appear here")}
             </h6>
           )}
           {previewStatus.type.includes("Error") && (
@@ -467,23 +469,28 @@ export const UploadFilesSplat = ({
 
       {(isUploading || anyUploading) && overallProgress && isMulti && (
         <p className="text-center text-sm opacity-60">
-          Uploading {overallProgress.current} / {overallProgress.total}...
+          {t("Uploading {current} / {total}...", {
+            current: overallProgress.current,
+            total: overallProgress.total,
+          })}
         </p>
       )}
 
       {!isUploading && !anyUploading && allDone && anyFailed && isMulti && (
         <p className="text-center text-sm text-red-400">
-          {fileEntries.filter((e) => e.status === "error").length} file(s) failed to upload.
+          {t("{count} file(s) failed to upload.", {
+            count: fileEntries.filter((e) => e.status === "error").length,
+          })}
         </p>
       )}
 
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onClose}>
-          Cancel
+          {t("Cancel")}
         </Button>
         {!isUploading && !anyUploading && allDone && anyFailed && isMulti && (
           <Button variant="secondary" onClick={retryAllFailed}>
-            Retry Failed
+            {t("Retry Failed")}
           </Button>
         )}
         {!hasUploadStarted && (
@@ -492,7 +499,7 @@ export const UploadFilesSplat = ({
             onClick={handleSubmit}
             disabled={fileEntries.length === 0}
           >
-            Upload
+            {t("Upload")}
           </Button>
         )}
       </div>

@@ -1,6 +1,7 @@
 import { memo, type ReactNode } from "react";
 import { CircleAlertIcon, XIcon } from "lucide-react";
 import { getCreatorIconPathForModelId } from "@storyteller/model-list";
+import { useTranslation } from "@storyteller/common";
 
 export interface FailedCardProps {
   id: string;
@@ -29,6 +30,7 @@ export const FailedCard = memo(function FailedCard({
   recreateSlot,
   onDismiss,
 }: FailedCardProps) {
+  const { t } = useTranslation();
   const iconPath = modelId ? getCreatorIconPathForModelId(modelId) : null;
 
   return (
@@ -44,7 +46,7 @@ export const FailedCard = memo(function FailedCard({
       <div className="relative flex h-full flex-col items-center justify-center gap-2 px-4 sm:px-6">
         <CircleAlertIcon className="text-2xl text-red-400" />
         <span className="text-center text-xs font-medium text-red-400">
-          {failureReason || "Generation failed"}
+          {failureReason || t("Generation failed")}
         </span>
         {failureMessage && failureMessage !== failureReason && (
           <span className="text-center text-[10px] max-w-md text-red-400/60 line-clamp-2 sm:line-clamp-4">
@@ -59,7 +61,7 @@ export const FailedCard = memo(function FailedCard({
             className="flex items-center gap-1.5 rounded-[3px] bg-white/5 px-3 py-1.5 text-xs text-white/50 transition-colors hover:bg-white/10 hover:text-white/70"
           >
             <XIcon />
-            Dismiss
+            {t("Dismiss")}
           </button>
         </div>
       </div>

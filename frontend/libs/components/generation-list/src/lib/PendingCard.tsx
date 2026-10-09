@@ -4,6 +4,7 @@ import { getCreatorIconPathForModelId } from "@storyteller/model-list";
 import { derivePendingStatus } from "./pending-status";
 import { batchNoun } from "./types";
 import type { GenerationMediaClass } from "./types";
+import { useTranslation } from "@storyteller/common";
 
 export interface PendingCardProps {
   id: string;
@@ -28,9 +29,11 @@ export const PendingCard = memo(function PendingCard({
   mediaClass,
   recreateSlot,
 }: PendingCardProps) {
+  const { t } = useTranslation();
   const { progressPercent, timeLabel } = derivePendingStatus(
     progress,
     estimatedTimeLeftMs,
+    t,
   );
 
   const iconPath = getCreatorIconPathForModelId(modelId);
@@ -40,8 +43,10 @@ export const PendingCard = memo(function PendingCard({
       <div className="animate-shimmer h-full w-full" />
       {batchCount != null && batchCount > 1 && (
         <div className="absolute left-2 right-2 top-2 z-10 bg-black/60 px-2.5 py-1.5 text-center text-[10px] leading-snug text-white/70 backdrop-blur-sm">
-          Generating {batchCount} {batchNoun(mediaClass)} · Results may appear
-          one at a time
+          {t("Generating {count} {media}. Results may appear one at a time", {
+            count: batchCount,
+            media: batchNoun(mediaClass, t),
+          })}
         </div>
       )}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">

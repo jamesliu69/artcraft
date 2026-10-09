@@ -8,6 +8,7 @@ import { useTutorialModalStore } from "./help-menu-store";
 import { Button } from "@storyteller/ui-button";
 import { PopoverMenu, PopoverItem } from "@storyteller/ui-popover";
 import { getNewsPosts, markdownToHtml } from "@storyteller/markdown-content";
+import { useTranslation } from "@storyteller/common";
 
 export type HelpMenuButtonProps = {
   items?: TutorialItem[];
@@ -18,6 +19,7 @@ export type HelpMenuButtonProps = {
 
 // Internal News Component
 const NewsView = ({ onBack }: { onBack: () => void }) => {
+  const { t } = useTranslation();
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
   const bundledItems = useMemo(() => getNewsPosts(), []);
@@ -62,7 +64,7 @@ const NewsView = ({ onBack }: { onBack: () => void }) => {
           onClick={() => setSelectedSlug(null)}
           className="self-start mb-4 text-sm flex items-center gap-2 text-white/60 hover:text-white transition-colors"
         >
-          <ChevronLeftIcon /> Back to News
+          <ChevronLeftIcon /> {t("Back to News")}
         </button>
 
         <div className="article-content">
@@ -133,7 +135,7 @@ const NewsView = ({ onBack }: { onBack: () => void }) => {
         </div>
       ))}
       {items.length === 0 && (
-        <div className="text-center text-white/40 py-10">No news yet.</div>
+        <div className="text-center text-white/40 py-10">{t("No news yet.")}</div>
       )}
     </div>
   );
@@ -145,6 +147,7 @@ export function HelpMenuButton({
   className,
   onOpenChange,
 }: HelpMenuButtonProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const tutorials = useMemo(() => items ?? defaultTutorials, [items]);
   const view = useTutorialModalStore((s) => s.view);
@@ -177,31 +180,31 @@ export function HelpMenuButton({
   // Menu items for the popover
   const menuItems: PopoverItem[] = [
     {
-      label: "Tutorials",
+      label: t("Tutorials"),
       selected: false,
       icon: <BookIcon  className="text-base" />,
       action: "tutorials",
     },
     {
-      label: "News & Updates",
+      label: t("News & Updates"),
       selected: false,
       icon: <NewspaperIcon  className="text-base" />,
       action: "news",
     },
     {
-      label: "Discord",
+      label: t("Discord"),
       selected: false,
       icon: <DiscordIcon  className="text-base" />,
       action: "discord",
     },
     {
-      label: "GitHub",
+      label: t("GitHub"),
       selected: false,
       icon: <GithubIcon  className="text-base" />,
       action: "github",
     },
     {
-      label: "ArtCraft Studios",
+      label: t("ArtCraft Studios"),
       selected: false,
       icon: <YoutubeIcon  className="text-base" />,
       action: "artcraft",
@@ -331,8 +334,8 @@ export function HelpMenuButton({
     view === "video"
       ? undefined
       : view === "news"
-        ? "News & Updates"
-        : panelTitle;
+        ? t("News & Updates")
+        : t(panelTitle);
 
   return (
     <div className={className}>
@@ -345,7 +348,7 @@ export function HelpMenuButton({
         triggerIcon={
           <CircleHelpIcon  className="text-base-fg" />
         }
-        triggerLabel="Help"
+        triggerLabel={t("Help")}
         buttonClassName="h-9"
       />
 
@@ -363,7 +366,7 @@ export function HelpMenuButton({
           <>
             {tutorials.length === 0 ? (
               <div className="flex items-center justify-center py-12 text-white/60">
-                No tutorials yet.
+                {t("No tutorials yet.")}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -377,12 +380,12 @@ export function HelpMenuButton({
                     <div className="aspect-video w-full overflow-hidden">
                       <img
                         src={item.thumbnailUrl}
-                        alt={item.title}
+                        alt={t(item.title)}
                         className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
                       />
                     </div>
                     <div className="p-3 text-sm text-white/90">
-                      {item.title}
+                      {t(item.title)}
                     </div>
                   </button>
                 ))}
@@ -400,10 +403,10 @@ export function HelpMenuButton({
                 variant="action"
                 icon={ChevronLeftIcon}
               >
-                Back
+                {t("Back")}
               </Button>
               <div className="font-display text-lg font-bold text-base-fg">
-                Tutorial: {selected.title}
+                {t("Tutorial: {title}", { title: t(selected.title) })}
               </div>
             </div>
             <div className="w-full">

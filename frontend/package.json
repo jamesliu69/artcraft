@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "test:desktop-session": "node tools/testing/desktop-session.mjs",
+    "test:locale": "node tools/testing/locale-switching.mjs",
     "perf:desktop": "node tools/performance/run.mjs"
   },
   "private": true,

@@ -4,6 +4,7 @@ import { CameraIcon, ChevronDownIcon, ChevronUpIcon, DownloadIcon, Grid2x2Icon, 
 import { DynamicIcon } from "@storyteller/icons";
 import { PopoverItem, PopoverMenu } from "@storyteller/ui-popover";
 import { Button, ToggleButton, GenerateButton } from "@storyteller/ui-button";
+import { useTranslation } from "@storyteller/common";
 import { ButtonIconSelect } from "@storyteller/ui-button-icon-select";
 import { Tooltip } from "@storyteller/ui-tooltip";
 import {
@@ -134,6 +135,7 @@ export const PromptBox3D = ({
   onAddTimeline,
   showAddTimelineButton = true,
 }: PromptBox3DProps) => {
+  const { t } = useTranslation();
   //const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [content, setContent] = useState<React.ReactNode>(null);
@@ -166,17 +168,20 @@ export const PromptBox3D = ({
   const [showImagePrompts, setShowImagePrompts] = useState(false);
   const [aspectRatioList, setAspectRatioList] = useState<PopoverItem[]>([
     {
-      label: "Wide",
+      label: t("Wide"),
+      action: "wide",
       selected: true,
       icon: <RectangleHorizontalIcon  className="h-4 w-4" />,
     },
     {
-      label: "Tall",
+      label: t("Tall"),
+      action: "tall",
       selected: false,
       icon: <RectangleVerticalIcon  className="h-4 w-4" />,
     },
     {
-      label: "Square",
+      label: t("Square"),
+      action: "square",
       selected: false,
       icon: <SquareIcon  className="h-4 w-4" />,
     },
@@ -239,29 +244,30 @@ export const PromptBox3D = ({
     setAspectRatioList((prev) =>
       prev.map((item) => ({
         ...item,
+        label: t(String(item.action).replace(/^./, (letter) => letter.toUpperCase())),
         selected:
-          (item.label === "Wide" &&
+          (item.action === "wide" &&
             cameraAspectRatio === CameraAspectRatio.HORIZONTAL_3_2) ||
-          (item.label === "Tall" &&
+          (item.action === "tall" &&
             cameraAspectRatio === CameraAspectRatio.VERTICAL_2_3) ||
-          (item.label === "Square" &&
+          (item.action === "square" &&
             cameraAspectRatio === CameraAspectRatio.SQUARE_1_1),
       })),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cameraAspectRatio]);
+  }, [cameraAspectRatio, t]);
 
   const handleAspectRatioSelect = (selectedItem: PopoverItem) => {
     setAspectRatioList((prev) =>
       prev.map((item) => ({
         ...item,
-        selected: item.label === selectedItem.label,
+        selected: item.action === selectedItem.action,
       })),
     );
 
     // Map the selected label to the corresponding CameraAspectRatio enum value
     let newRatio: CameraAspectRatio;
-    switch (selectedItem.label.toLowerCase()) {
+    switch (selectedItem.action) {
       case "wide":
         newRatio = CameraAspectRatio.HORIZONTAL_3_2;
         break;
@@ -329,12 +335,12 @@ export const PromptBox3D = ({
     const trimmed = prompt.trim();
     if (!trimmed) return;
     if (isFinite(maxLen) && trimmed.length > maxLen) {
-      toast.error(`Prompt exceeds the ${maxLen} character limit for this model`);
+      toast.error(t("Prompt exceeds the {count} character limit for this model", { count: maxLen }));
       return;
     }
     setEnginePrompt(trimmed);
     pushPromptHistory(trimmed);
-    toast.success("Scene update saved — applying edits is coming soon.");
+    toast.success(t("Scene update saved — applying edits is coming soon."));
   };
 
   const handleEnqueue = async () => {
@@ -343,7 +349,7 @@ export const PromptBox3D = ({
     }
     if (isFinite(maxLen) && prompt.length > maxLen) {
       toast.error(
-        `Prompt exceeds the ${maxLen} character limit for this model`,
+        t("Prompt exceeds the {count} character limit for this model", { count: maxLen }),
       );
       return;
     }
@@ -367,7 +373,7 @@ export const PromptBox3D = ({
     // omni-gen backend which keys off the canonical `model` / `id`
     // string. Bail loudly if nothing is selected.
     if (!selectedImageModel?.id) {
-      handleError("No model selected");
+      handleError(t("No model selected"));
       return;
     }
 
@@ -389,7 +395,7 @@ export const PromptBox3D = ({
           });
           if (!snapshotResult.success || !snapshotResult.data) {
             handleError(
-              snapshotResult.errorMessage || "Failed to upload scene snapshot",
+              snapshotResult.errorMessage || t("Failed to upload scene snapshot"),
             );
             return;
           }
@@ -423,7 +429,7 @@ export const PromptBox3D = ({
 
       const response = await new OmniGenApi().generateImage(request);
       if (!response.success || !response.inference_job_token) {
-        handleError("Generation failed");
+        handleError(t("Generation failed"));
         return;
       }
 
@@ -436,10 +442,10 @@ export const PromptBox3D = ({
         timestamp: Date.now(),
       });
 
-      toast.success("Image added to queue");
+      toast.success(t("Image added to queue"));
     } catch (err) {
       handleError(
-        err instanceof Error ? err.message : "Generation request failed",
+        err instanceof Error ? err.message : t("Generation request failed"),
       );
     } finally {
       setIsEnqueueing(false);
@@ -529,7 +535,7 @@ export const PromptBox3D = ({
         await new Promise((resolve) => setTimeout(resolve, 2000));
       } finally {
         setIsEnqueueing(false);
-        toast.success("Image added to queue");
+        toast.success(t("Image added to queue"));
       }
     }
 
@@ -636,13 +642,13 @@ export const PromptBox3D = ({
                   {
                     value: "manual",
                     icon: MousePointerIcon,
-                    text: "Manual",
+                    text: t("Manual"),
                     tooltip: "Manual — place and transform objects yourself",
                   },
                   {
                     value: "prompted",
                     icon: WandSparklesIcon,
-                    text: "Prompted",
+                    text: t("Prompted"),
                     tooltip:
                       "Prompted — describe changes and let AI edit the scene",
                   },
@@ -670,7 +676,7 @@ export const PromptBox3D = ({
               setContent(
                 <img
                   src={image.fullUrl ?? image.url}
-                  alt="Reference preview"
+                  alt={t("Reference preview")}
                   className="w-full h-full object-contain"
                 />,
               );
@@ -695,7 +701,7 @@ export const PromptBox3D = ({
           <div className="flex gap-3">
             {selectedImageModel?.canUseImagePrompt && (
               <Tooltip
-                content="Add Image"
+                content={t("Add Image")}
                 position="top"
                 closeOnClick={true}
                 className={twMerge(isImageRowVisible && "hidden opacity-0")}
@@ -730,7 +736,7 @@ export const PromptBox3D = ({
               <textarea
                 ref={textareaRef}
                 rows={1}
-                placeholder="Describe your image..."
+                placeholder={t("Describe your image...")}
                 className={`promptbox-scrollbar text-md min-h-[2.5em] w-full resize-y overflow-y-auto bg-transparent pr-8 text-base-fg placeholder-base-fg/60 focus:outline-none ${isExpanded ? "max-h-[300px]" : "max-h-[5.5em]"}`}
                 value={prompt}
                 onChange={handleChange}
@@ -767,7 +773,7 @@ export const PromptBox3D = ({
               {selectedImageModel?.canChangeAspectRatio &&
                 !selectedImageModel?.supportsNewAspectRatio() && (
                   <Tooltip
-                    content="Aspect ratio"
+                    content={t("Aspect ratio")}
                     position="top"
                     className="z-50"
                     closeOnClick={true}
@@ -776,7 +782,7 @@ export const PromptBox3D = ({
                       items={aspectRatioList}
                       onSelect={handleAspectRatioSelect}
                       mode="toggle"
-                      panelTitle="Aspect Ratio"
+                      panelTitle={t("Aspect Ratio")}
                       showIconsInList
                       triggerIcon={
                         <DynamicIcon
@@ -789,7 +795,7 @@ export const PromptBox3D = ({
                 )}
               {selectedImageModel?.canChangeResolution && (
                 <Tooltip
-                  content="Resolution"
+                  content={t("Resolution")}
                   position="top"
                   className="z-50"
                   closeOnClick={true}
@@ -798,7 +804,7 @@ export const PromptBox3D = ({
                     items={resolutionList}
                     onSelect={handleResolutionSelect}
                     mode="toggle"
-                    panelTitle="Resolution"
+                    panelTitle={t("Resolution")}
                     showIconsInList
                     triggerIcon={
                       <MaximizeIcon  className="h-4 w-4" />
@@ -807,7 +813,7 @@ export const PromptBox3D = ({
                 </Tooltip>
               )}
               <Tooltip
-                content="Camera"
+                content={t("Camera")}
                 position="top"
                 className="z-50"
                 delay={300}
@@ -835,14 +841,14 @@ export const PromptBox3D = ({
                   disableAddButton={cameras.length >= 6}
                   showIconsInList
                   mode="toggle"
-                  panelTitle="Camera"
-                  panelActionLabel="Settings"
+                  panelTitle={t("Camera")}
+                  panelActionLabel={t("Settings")}
                   onPanelAction={() => setIsCameraSettingsOpen(true)}
                   buttonClassName="max-w-[130px] h-9"
                 />
               </Tooltip>
               <Tooltip
-                content={gridVisibility ? "Grid: ON" : "Grid: OFF"}
+                content={gridVisibility ? t("Grid: ON") : t("Grid: OFF")}
                 position="top"
                 className="z-50"
                 delay={200}
@@ -862,7 +868,7 @@ export const PromptBox3D = ({
                 confirmClear={referenceImages.length > 0}
               />
               <Tooltip
-                content="Download frame"
+                content={t("Download frame")}
                 position="top"
                 className="z-50"
                 closeOnClick={true}
@@ -882,7 +888,7 @@ export const PromptBox3D = ({
                 icon={SaveIcon}
                 onClick={handleSaveFrame}
               >
-                Save frame
+                {t("Save frame")}
               </Button>
               <GenerateButton
                 className="flex items-center border-none bg-white px-3 text-sm font-bold text-black hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
@@ -892,7 +898,7 @@ export const PromptBox3D = ({
                 loading={isEnqueueing}
                 credits={credits}
               >
-                Generate
+                {t("Generate")}
               </GenerateButton>
             </div>
           </div>
@@ -906,14 +912,14 @@ export const PromptBox3D = ({
                   className="flex h-9 items-center border border-ui-controls-border bg-ui-controls/60 px-3 text-sm text-base-fg backdrop-blur-lg hover:bg-ui-controls/90"
                   onClick={() => onAddTimeline?.()}
                 >
-                  Add animation timeline
+                  {t("Add animation timeline")}
                 </Button>
               ) : (
                 <span />
               )}
               <div className="flex items-center gap-2">
                 <Tooltip
-                  content="Prompt history"
+                  content={t("Prompt history")}
                   position="top"
                   className="z-50"
                   delay={200}
@@ -921,7 +927,7 @@ export const PromptBox3D = ({
                 >
                   <PopoverMenu
                     mode="toggle"
-                    panelTitle="Recent prompts"
+                    panelTitle={t("Recent prompts")}
                     triggerIcon={
                       <HistoryIcon
                         
@@ -935,7 +941,7 @@ export const PromptBox3D = ({
                           }))
                         : [
                             {
-                              label: "No prompts yet",
+                              label: t("No prompts yet"),
                               selected: false,
                               disabled: true,
                             },
@@ -953,7 +959,7 @@ export const PromptBox3D = ({
                   onClick={handlePromptedUpdate}
                   disabled={!prompt.trim()}
                 >
-                  Update
+                  {t("Update")}
                 </Button>
               </div>
             </div>
@@ -961,7 +967,7 @@ export const PromptBox3D = ({
           {buildMode === "manual" && (
           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2">
             <Tooltip
-              content={isExpanded ? "Collapse" : "Expand"}
+              content={isExpanded ? t("Collapse") : t("Expand")}
               position="top"
               className="-mb-2"
             >
@@ -1034,7 +1040,7 @@ export const PromptBox3D = ({
         }
       >
         <textarea
-          placeholder="Describe your image..."
+          placeholder={t("Describe your image...")}
           className="promptbox-scrollbar text-md h-full min-h-0 w-full resize-none overflow-y-auto rounded-[3px] bg-transparent text-base-fg placeholder-base-fg/60 focus:outline-none"
           value={prompt}
           onChange={handleChange}

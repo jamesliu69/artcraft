@@ -13,6 +13,7 @@ import {
   isActionReminderOpen,
 } from "@storyteller/ui-action-reminder-modal";
 import { toast } from "@storyteller/ui-toaster";
+import { useTranslation } from "@storyteller/common";
 
 type ModalMode = "select" | "view";
 
@@ -85,6 +86,10 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
   onCreateFolderFromMenu,
   onRemoveFromFolder,
 }) => {
+  const { t } = useTranslation();
+  const displayLabel = item.labelTranslationKey
+    ? t(item.labelTranslationKey)
+    : item.label;
   const imgRef = useRef<HTMLImageElement>(null);
   const dragStarted = useRef(false);
   // Right-click context menu position (null = closed).
@@ -125,15 +130,16 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
     if (!onDelete) return;
     showActionReminder({
       reminderType: "default",
-      title: "Delete this media?",
+      title: t("Delete this media?"),
       message: (
         <p className="text-sm text-white/70">
-          This will permanently remove the media from your library. This action
-          cannot be undone.
+          {t(
+            "This will permanently remove the media from your library. This action cannot be undone.",
+          )}
         </p>
       ),
-      primaryActionText: "Delete",
-      secondaryActionText: "Cancel",
+      primaryActionText: t("Delete"),
+      secondaryActionText: t("Cancel"),
       primaryActionBtnClassName: "bg-red text-white hover:bg-red/90",
       onPrimaryAction: async () => {
         try {
@@ -145,7 +151,7 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
             (result as any).status !== "success"
           ) {
             const msg =
-              (result as any).error_message || "Failed to delete media.";
+              (result as any).error_message || t("Failed to delete media.");
             console.error("Delete failed:", result);
             toast.error(msg);
             return;
@@ -154,7 +160,9 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
         } catch (err) {
           console.error("Delete threw:", err);
           toast.error(
-            `Failed to delete media: ${err instanceof Error ? err.message : String(err)}`,
+            t("Failed to delete media: {error}", {
+              error: err instanceof Error ? err.message : String(err),
+            }),
           );
         } finally {
           isActionReminderOpen.value = false;
@@ -237,6 +245,14 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
   };
 
   const showTooltip = !disableTooltipAndBadge && !bulkSelectionMode;
+  const mediaClassLabels: Record<string, string> = {
+    image: t("Image"),
+    video: t("Video"),
+    audio: t("Audio"),
+    mesh: t("Mesh"),
+    splat: t("Splat"),
+    dimensional: "3D",
+  };
 
   const itemButton = (
     <button
@@ -261,7 +277,7 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
       )}
       onPointerDown={handlePointerDown}
       onClick={handleButtonClick}
-      aria-label={item.label}
+      aria-label={displayLabel}
     >
       <div className="relative h-full w-full">
         {isAudio ? (
@@ -272,12 +288,12 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
               </div>
             </div>
             <p className="line-clamp-2 shrink-0 px-2.5 pb-2.5 text-left text-xs leading-snug text-white/75">
-              {audioPromptText || item.label}
+              {audioPromptText || displayLabel}
             </p>
           </div>
         ) : !item.thumbnail ? (
           <div className="flex h-full w-full items-center justify-center bg-black/30">
-            <span className="text-white/60">Image not available</span>
+            <span className="text-white/60">{t("Image not available")}</span>
           </div>
         ) : (
           <>
@@ -289,7 +305,7 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
               loading="lazy"
               ref={imgRef}
               src={imgSrc}
-              alt={item.label}
+              alt={displayLabel}
               className={twMerge(
                 "h-full w-full bg-black/30",
                 imageFit === "contain" ? "object-contain" : "object-cover",
@@ -315,7 +331,7 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
         )}
         {disabled && (
           <div className="absolute left-2 top-2 bg-black/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white/80">
-            Added
+            {t("Added")}
           </div>
         )}
       </div>
@@ -433,7 +449,7 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
           item.mediaClass === "mesh" ||
           item.mediaClass === "splat"
             ? "3D"
-            : item.mediaClass}
+            : (mediaClassLabels[item.mediaClass] ?? item.mediaClass)}
         </div>
       )}
       {/* Upload badge — bottom-right (always visible, even in select mode) */}
@@ -452,19 +468,19 @@ export const GalleryDraggableItem: React.FC<GalleryDraggableItemProps> = ({
             <div className="flex flex-col items-center text-xs whitespace-nowrap">
               {!isAudio && (
                 <span>
-                  <span className="font-bold">Drag</span>
+                  <span className="font-bold">{t("Drag")}</span>
                   <span className="opacity-50">
                     {item.mediaClass === "dimensional" ||
                     item.mediaClass === "mesh" ||
                     item.mediaClass === "splat"
-                      ? " to add to scene"
-                      : " to add"}
+                      ? ` ${t("to add to scene")}`
+                      : ` ${t("to add")}`}
                   </span>
                 </span>
               )}
               <span>
-                <span className="font-bold">Click</span>
-                <span className="opacity-50"> to view</span>
+                <span className="font-bold">{t("Click")}</span>
+                <span className="opacity-50"> {t("to view")}</span>
               </span>
             </div>
           }
